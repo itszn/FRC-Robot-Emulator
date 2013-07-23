@@ -33,8 +33,8 @@ public class Jaguar extends SafePWM implements SpeedController, IDeviceControlle
         setPeriodMultiplier(PeriodMultiplier.k1X);
         setRaw(m_centerPwm);
 
-        UsageReporting.report(UsageReporting.kResourceType_Jaguar, getChannel(), getModuleNumber()-1);
-        LiveWindow.addActuator("Jaguar", getModuleNumber(), getChannel(), this);
+       // UsageReporting.report(UsageReporting.kResourceType_Jaguar, getChannel(), getModuleNumber()-1);
+        //LiveWindow.addActuator("Jaguar", getModuleNumber(), getChannel(), this);
     }
 
     /**

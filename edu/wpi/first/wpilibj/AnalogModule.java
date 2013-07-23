@@ -51,7 +51,7 @@ public class AnalogModule extends Module {
      * @param moduleNumber The index of the analog module to get (1 or 2).
      * @return The AnalogModule.
      */
-    public static synchronized AnalogModule getInstance(final int moduleNumber) {
+    public static AnalogModule getInstance(final int moduleNumber) {
         checkAnalogModule(moduleNumber);
         return (AnalogModule) getModule(ModulePresence.ModuleType.kAnalog, moduleNumber);
     }
@@ -70,7 +70,7 @@ public class AnalogModule extends Module {
     protected AnalogModule(final int moduleNumber) {
         super(ModulePresence.ModuleType.kAnalog, moduleNumber);
 
-        m_module = new tAI(moduleNumber - 1);
+        //m_module = new tAI(moduleNumber - 1);
         setNumChannelsToActivate(SensorBase.kAnalogChannels);
         setSampleRate(AnalogModule.kDefaultSampleRate);
 
@@ -106,8 +106,8 @@ public class AnalogModule extends Module {
 
         // Atomically set the scan size and the convert rate so that the sample
         // rate is constant
-        m_module.writeConfig_ScanSize(getNumChannelsToActivate());
-        m_module.writeConfig_ConvertRate(ticksPerConversion);
+        //m_module.writeConfig_ScanSize(getNumChannelsToActivate());
+        //m_module.writeConfig_ConvertRate(ticksPerConversion);
 
         // Indicate that the scan size has been committed to hardware.
         setNumChannelsToActivate(0);

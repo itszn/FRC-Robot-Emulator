@@ -48,6 +48,7 @@ class LiveWindowComponent {
  *
  * @author Alex Henning
  */
+@Deprecated
 public class LiveWindow {
 
     private static Vector sensors = new Vector();

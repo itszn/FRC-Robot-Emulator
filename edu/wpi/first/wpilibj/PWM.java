@@ -121,7 +121,7 @@ public class PWM extends SensorBase implements LiveWindowSendable {
         m_module.setPWM(m_channel, kPwmDisabled);
         m_eliminateDeadband = false;
 
-        UsageReporting.report(UsageReporting.kResourceType_PWM, channel, moduleNumber-1);
+       // UsageReporting.report(UsageReporting.kResourceType_PWM, channel, moduleNumber-1);
     }
 
     /**
@@ -153,7 +153,7 @@ public class PWM extends SensorBase implements LiveWindowSendable {
      */
     public void free() {
         m_module.setPWM(m_channel, kPwmDisabled);
-        allocated.free((m_module.getModuleNumber() - 1) * kPwmChannels + m_channel - 1);
+        //allocated.free((m_module.getModuleNumber() - 1) * kPwmChannels + m_channel - 1);
     }
 
     /**

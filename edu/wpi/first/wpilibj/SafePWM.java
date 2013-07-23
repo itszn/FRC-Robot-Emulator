@@ -19,9 +19,10 @@ public class SafePWM extends PWM implements MotorSafety {
      * Initialize a SafePWM object by setting defaults
      */
     void initSafePWM() {
-        m_safetyHelper = new MotorSafetyHelper(this);
-        m_safetyHelper.setExpiration(0.0);
-        m_safetyHelper.setSafetyEnabled(false);
+    	
+       // m_safetyHelper = new MotorSafetyHelper(this);
+        //m_safetyHelper.setExpiration(0.0);
+        //m_safetyHelper.setSafetyEnabled(false);
     }
 
 
@@ -92,7 +93,7 @@ public class SafePWM extends PWM implements MotorSafety {
      * the timeout value.
      */
     public void Feed() {
-        m_safetyHelper.feed();
+        //m_safetyHelper.feed();
     }
 
     public void setSafetyEnabled(boolean enabled) {

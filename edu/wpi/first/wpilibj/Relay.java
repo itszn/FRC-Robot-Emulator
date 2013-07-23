@@ -124,11 +124,11 @@ public class Relay extends SensorBase implements IDeviceController, LiveWindowSe
         try {
             if (m_direction == Direction.kBoth || m_direction == Direction.kForward) {
                 relayChannels.allocate(((moduleNumber - 1) * kRelayChannels + m_channel - 1) * 2);
-                UsageReporting.report(UsageReporting.kResourceType_Relay, m_channel, moduleNumber-1);
+                //UsageReporting.report(UsageReporting.kResourceType_Relay, m_channel, moduleNumber-1);
             }
             if (m_direction == Direction.kBoth || m_direction == Direction.kReverse) {
                 relayChannels.allocate(((moduleNumber - 1) * kRelayChannels + m_channel - 1) * 2 + 1);
-                UsageReporting.report(UsageReporting.kResourceType_Relay, m_channel+128, moduleNumber-1);
+                //UsageReporting.report(UsageReporting.kResourceType_Relay, m_channel+128, moduleNumber-1);
             }
         } catch (CheckedAllocationException e) {
             throw new AllocationException("Relay channel " + m_channel + " on module " + moduleNumber + " is already allocated");
@@ -136,7 +136,7 @@ public class Relay extends SensorBase implements IDeviceController, LiveWindowSe
         m_module = DigitalModule.getInstance(moduleNumber);
         m_module.setRelayForward(m_channel, false);
         m_module.setRelayReverse(m_channel, false);
-        LiveWindow.addActuator("Relay", moduleNumber, m_channel, this);
+        //LiveWindow.addActuator("Relay", moduleNumber, m_channel, this);
     }
 
 

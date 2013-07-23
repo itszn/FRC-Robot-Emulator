@@ -34,8 +34,8 @@ public class Servo extends PWM implements IDevice {
         setBounds(245, 0, 0, 0, 11);
         setPeriodMultiplier(PeriodMultiplier.k4X);
 
-        LiveWindow.addActuator("Servo", getModuleNumber(), getChannel(), this);
-        UsageReporting.report(UsageReporting.kResourceType_Servo, getChannel(), getModuleNumber()-1);
+        //LiveWindow.addActuator("Servo", getModuleNumber(), getChannel(), this);
+        //UsageReporting.report(UsageReporting.kResourceType_Servo, getChannel(), getModuleNumber()-1);
     }
 
     /**

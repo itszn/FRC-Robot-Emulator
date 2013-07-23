@@ -123,7 +123,7 @@ public class Joystick extends GenericHID implements IInputOutput{
         m_buttons[ButtonType.kTrigger.value] = kDefaultTriggerButton;
         m_buttons[ButtonType.kTop.value] = kDefaultTopButton;
 
-        UsageReporting.report(UsageReporting.kResourceType_Joystick, port);
+        //UsageReporting.report(UsageReporting.kResourceType_Joystick, port);
     }
 
     /**

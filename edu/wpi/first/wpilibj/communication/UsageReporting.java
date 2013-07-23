@@ -15,6 +15,7 @@ import com.sun.cldc.jna.Pointer;
  *
  * @author mwills
  */
+@Deprecated
 public final class UsageReporting {
 
     private UsageReporting() {
@@ -122,7 +123,7 @@ public final class UsageReporting {
      * @param instanceNumber an index that identifies the resource instance.
      */
     public static void report(int resource, int instanceNumber) {
-        report(resource, instanceNumber, 0);
+       // report(resource, instanceNumber, 0);
     }
     /**
      * Report the usage of a resource of interest.
@@ -132,7 +133,7 @@ public final class UsageReporting {
      * @param context an optional additional context number for some cases (such as module number).  Set to 0 to omit.
      */
     public static void report(int resource, int instanceNumber, int context) {
-        report(resource, instanceNumber, context, null);
+        //report(resource, instanceNumber, context, null);
     }
     /**
      * Report the usage of a resource of interest.
@@ -143,12 +144,12 @@ public final class UsageReporting {
      * @param feature a string to be included describing features in use on a specific resource.  Setting the same resource more than once allows you to change the feature string.
      */
     public static void report(int resource, int instanceNumber, int context, String feature) {
-        if (feature != null) {
-            Pointer featureStringPointer = Pointer.createStringBuffer(feature);
-            nUsageReporting_reportFn.call4(resource, instanceNumber, context, featureStringPointer);
+       // if (feature != null) {
+        //    Pointer featureStringPointer = Pointer.createStringBuffer(feature);
+          //  nUsageReporting_reportFn.call4(resource, instanceNumber, context, featureStringPointer);
             //featureStringPointer.free();//TODO check to see if this can get called or not
-        } else {
-            nUsageReporting_reportFn.call4(resource, instanceNumber, context, Pointer.NULL());
-        }
+        //} else {
+        //    nUsageReporting_reportFn.call4(resource, instanceNumber, context, Pointer.NULL());
+        //}
     }
 }

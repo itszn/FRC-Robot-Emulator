@@ -18,12 +18,23 @@ import edu.wpi.first.wpilibj.util.CheckedAllocationException;
  */
 public class DigitalModule extends Module {
 
+	private static class RelayInfo {
+		public boolean rev;
+		public boolean fwd;
+		public RelayInfo(boolean fwd, boolean rev) {
+			this.rev = rev;
+			this.fwd = fwd;
+		}
+	}
+	
+	private static int[] DIOChannels = new int[SensorBase.kDigitalChannels];
+	private static RelayInfo[] relayChannels = new RelayInfo[SensorBase.kRelayChannels];
     /**
      * Expected loop timing
      */
     public static final int kExpectedLoopTiming = 260;
-    private static final Resource DIOChannels = new Resource(tDIO.kNumSystems * SensorBase.kDigitalChannels);
-    private static final Resource DO_PWMGenerators[] = new Resource[tDIO.kNumSystems];
+    //private static final Resource DIOChannels = new Resource(tDIO.kNumSystems * SensorBase.kDigitalChannels);
+    //private static final Resource DO_PWMGenerators[] = new Resource[tDIO.kNumSystems];
     tDIO m_fpgaDIO;
     private final Object syncRoot = new Object();
 
@@ -65,14 +76,14 @@ public class DigitalModule extends Module {
     protected DigitalModule(final int moduleNumber) {
         super(ModulePresence.ModuleType.kDigital, moduleNumber);
         
-        DO_PWMGenerators[m_moduleNumber - 1] = new Resource(tDIO.kDO_PWMDutyCycle_NumElements);
-        m_fpgaDIO = new tDIO(m_moduleNumber - 1);
+        //DO_PWMGenerators[m_moduleNumber - 1] = new Resource(tDIO.kDO_PWMDutyCycle_NumElements);
+        //m_fpgaDIO = new tDIO(m_moduleNumber - 1);
 
-        while (tDIO.readLoopTiming() == 0) {
-            Timer.delay(.001);
-        }
+        //while (tDIO.readLoopTiming() == 0) {
+         //   Timer.delay(.001);
+        //}
 
-        if (tDIO.readLoopTiming() != kExpectedLoopTiming) {
+        /*if (tDIO.readLoopTiming() != kExpectedLoopTiming) {
             System.out.print("DIO LoopTiming: ");
             System.out.print(tDIO.readLoopTiming());
             System.out.print(", expecting: ");
@@ -82,15 +93,19 @@ public class DigitalModule extends Module {
         tDIO.writePWMConfig_Period((short) PWM.kDefaultPwmPeriod);
         tDIO.writePWMConfig_MinHigh((short) PWM.kDefaultMinPwmHigh);
 
-        // Ensure that PWM output values are set to OFF
+*/        // Ensure that PWM output values are set to OFF
         for (int pwm_index = 1; pwm_index <= kPwmChannels; pwm_index++) {
             setPWM(pwm_index, PWM.kPwmDisabled);
             setPWMPeriodScale(pwm_index, PWM.PeriodMultiplier.k4X_val); // Set all to 4x by default.
         }
+        
+        for (int i=1; i<= kRelayChannels; i++) {
+        	relayChannels[i-1] = new RelayInfo(false,false);
+        }
 
         // Turn off all relay outputs.
-        m_fpgaDIO.writeSlowValue_RelayFwd(0);
-        m_fpgaDIO.writeSlowValue_RelayRev(0);
+        //m_fpgaDIO.writeSlowValue_RelayFwd(0);
+        //m_fpgaDIO.writeSlowValue_RelayRev(0);
     }
 
     /**
@@ -102,7 +117,7 @@ public class DigitalModule extends Module {
      */
     public void setPWM(final int channel, final int value) {
         checkPWMChannel(channel);
-        m_fpgaDIO.writePWMValue(channel - 1, value);
+        DIOChannels[channel-1]  = value;
     }
 
     /**
@@ -113,7 +128,7 @@ public class DigitalModule extends Module {
      */
     public int getPWM(final int channel) {
         checkPWMChannel(channel);
-        return m_fpgaDIO.readPWMValue(channel - 1);
+        return DIOChannels[channel-1];
     }
 
     /**
@@ -124,7 +139,7 @@ public class DigitalModule extends Module {
      */
     public void setPWMPeriodScale(final int channel, final int squelchMask) {
         checkPWMChannel(channel);
-        m_fpgaDIO.writePWMPeriodScale((byte) (channel - 1), squelchMask);
+        //m_fpgaDIO.writePWMPeriodScale((byte) (channel - 1), squelchMask);
     }
 
     /**
@@ -137,16 +152,7 @@ public class DigitalModule extends Module {
      */
     public void setRelayForward(final int channel, final boolean on) {
         checkRelayChannel(channel);
-
-        synchronized (syncRoot) {
-            int forwardRelays = m_fpgaDIO.readSlowValue_RelayFwd();
-            if (on) {
-                forwardRelays |= 1 << (channel - 1);
-            } else {
-                forwardRelays &= ~(1 << (channel - 1));
-            }
-            m_fpgaDIO.writeSlowValue_RelayFwd(forwardRelays);
-        }
+        relayChannels[channel-1].fwd = on;
     }
 
     /**
@@ -160,15 +166,7 @@ public class DigitalModule extends Module {
     public void setRelayReverse(final int channel, final boolean on) {
         SensorBase.checkRelayChannel(channel);
 
-        synchronized (syncRoot) {
-            int reverseRelays = m_fpgaDIO.readSlowValue_RelayRev();
-            if (on) {
-                reverseRelays |= 1 << (channel - 1);
-            } else {
-                reverseRelays &= ~(1 << (channel - 1));
-            }
-            m_fpgaDIO.writeSlowValue_RelayRev(reverseRelays);
-        }
+        relayChannels[channel-1].rev = on;
     }
 
     /**
@@ -177,8 +175,8 @@ public class DigitalModule extends Module {
      * @return The current state of the relay.
      */
     public boolean getRelayForward(int channel) {
-        int forwardRelays = m_fpgaDIO.readSlowValue_RelayFwd();
-        return (forwardRelays & (1 << (channel - 1))) != 0;
+    	SensorBase.checkRelayChannel(channel);
+        return relayChannels[channel-1].fwd;
     }
 
     /**
@@ -186,7 +184,7 @@ public class DigitalModule extends Module {
      * @return The state of all forward relay channels as a byte.
      */
     public byte getRelayForward() {
-        return (byte) m_fpgaDIO.readSlowValue_RelayFwd();
+        return 0;//(byte) m_fpgaDIO.readSlowValue_RelayFwd();
     }
 
     /**
@@ -195,8 +193,8 @@ public class DigitalModule extends Module {
      * @return The current statte of the relay
      */
     public boolean getRelayReverse(int channel) {
-        int reverseRelays = m_fpgaDIO.readSlowValue_RelayRev();
-        return (reverseRelays & (1 << (channel - 1))) != 0;
+    	SensorBase.checkRelayChannel(channel);
+        return relayChannels[channel-1].rev;
     }
 
     /**
@@ -217,7 +215,7 @@ public class DigitalModule extends Module {
      * @return True if the I/O pin was allocated, false otherwise.
      */
     public boolean allocateDIO(final int channel, final boolean input) {
-        try {
+        /*try {
             DIOChannels.allocate((kDigitalChannels * (m_moduleNumber - 1) + channel - 1));
         } catch (CheckedAllocationException e) {
             throw new AllocationException(
@@ -233,7 +231,7 @@ public class DigitalModule extends Module {
             outputEnableValue = (short) (outputEnable | bitToSet);
         }
 
-        m_fpgaDIO.writeOutputEnable(outputEnableValue);
+        m_fpgaDIO.writeOutputEnable(outputEnableValue);*/
         return true;
     }
 
@@ -243,7 +241,7 @@ public class DigitalModule extends Module {
      * @param channel The channel whose resources should be freed.
      */
     public void freeDIO(final int channel) {
-        DIOChannels.free((kDigitalChannels * (m_moduleNumber - 1) + channel - 1));
+        //DIOChannels.free((kDigitalChannels * (m_moduleNumber - 1) + channel - 1));
     }
 
     /**
@@ -353,21 +351,23 @@ public class DigitalModule extends Module {
      * Allocate a DO PWM Generator.
      * Allocate PWM generators so that they are not accidently reused.
      */
+    @Deprecated
     public int allocateDO_PWM() {
-        try {
+        /*try {
             return DO_PWMGenerators[m_moduleNumber - 1].allocate();
         } catch (CheckedAllocationException e) {
             throw new AllocationException(
                 "No Digital Output PWM Generators on module " + m_moduleNumber + " remaining");
-        }
+        }*/
+    	return 0;
     }
 
     /**
      * Free the resource associated with a DO PWM generator.
      */
     public void freeDO_PWM(int pwmGenerator) {
-	if (pwmGenerator == ~0) return;
-        DO_PWMGenerators[m_moduleNumber - 1].free(pwmGenerator);
+	/*if (pwmGenerator == ~0) return;
+        DO_PWMGenerators[m_moduleNumber - 1].free(pwmGenerator);*/
     }
 
     /**

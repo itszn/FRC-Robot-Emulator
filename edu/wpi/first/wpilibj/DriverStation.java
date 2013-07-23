@@ -80,6 +80,8 @@ public class DriverStation{
     private boolean m_newControlData;
 	private boolean m_userInTestMode;
 	
+	private long timeStamp=-1;
+	
 	
 	
 	public static DriverStation instance = new DriverStation();
@@ -94,6 +96,24 @@ public class DriverStation{
 	public static DriverStation getInstance() {
 		return instance;
 	}
+	
+	/**
+     * Return the approximate match time
+     * The FMS does not currently send the official match time to the robots
+     * This returns the time since the enable signal sent from the Driver Station
+     * At the beginning of autonomous, the time is reset to 0.0 seconds
+     * At the beginning of teleop, the time is reset to +15.0 seconds
+     * If the robot is disabled, this returns 0.0 seconds
+     * Warning: This is not an official time (so it cannot be used to argue with referees)
+     * @return Match time in seconds since the beginning of autonomous
+     */
+    public double getMatchTime() {
+        if (timeStamp ==-1) {
+            return 0;
+        }
+        return ((float)(System.currentTimeMillis()-timeStamp))/1000f;
+    }
+	
     public boolean isEnabled() {
         return !m_inDisabled;
     }

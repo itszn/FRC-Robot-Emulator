@@ -103,8 +103,8 @@ public abstract class SensorBase { // TODO: Refactor
      * @param moduleNumber The digital module module number to check.
      */
     protected static void checkDigitalModule(final int moduleNumber) {
-        if(!ModulePresence.getModulePresence(ModulePresence.ModuleType.kDigital, moduleNumber - 1))
-            System.err.println("Digital module " + moduleNumber + " is not present.");
+        //if(!ModulePresence.getModulePresence(ModulePresence.ModuleType.kDigital, moduleNumber - 1))
+        //    System.err.println("Digital module " + moduleNumber + " is not present.");
     }
 
     /**
@@ -134,9 +134,9 @@ public abstract class SensorBase { // TODO: Refactor
      * @param moduleNumber The analog module module number to check.
      */
     protected static void checkAnalogModule(final int moduleNumber) {
-        if(!ModulePresence.getModulePresence(ModulePresence.ModuleType.kAnalog, moduleNumber - 1)) {
-            System.err.println("Analog module " + moduleNumber + " is not present.");
-        }
+        //if(!ModulePresence.getModulePresence(ModulePresence.ModuleType.kAnalog, moduleNumber - 1)) {
+        //    System.err.println("Analog module " + moduleNumber + " is not present.");
+        //}
     }
 
     /**

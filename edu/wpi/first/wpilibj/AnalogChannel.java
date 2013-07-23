@@ -59,7 +59,7 @@ public class AnalogChannel extends SensorBase implements PIDSource, LiveWindowSe
         checkAnalogChannel(channel);
         m_channel = channel;
         m_moduleNumber = moduleNumber;
-        m_module = AnalogModule.getInstance(moduleNumber);
+        //m_module = AnalogModule.getInstance(moduleNumber);
         try {
             channels.allocate((moduleNumber - 1) * kAnalogChannels + m_channel - 1);
         } catch (CheckedAllocationException e) {
@@ -67,14 +67,14 @@ public class AnalogChannel extends SensorBase implements PIDSource, LiveWindowSe
                     "Analog channel " + m_channel + " on module " + m_moduleNumber + " is already allocated");
         }
         if (channel == 1 || channel == 2) {
-            m_accumulator = new tAccumulator((byte) (channel - 1));
+           // m_accumulator = new tAccumulator((byte) (channel - 1));
             m_accumulatorOffset = 0;
         } else {
             m_accumulator = null;
         }
 
-        LiveWindow.addSensor("Analog", moduleNumber, channel, this);
-        UsageReporting.report(UsageReporting.kResourceType_AnalogChannel, channel, m_moduleNumber-1);
+        //LiveWindow.addSensor("Analog", moduleNumber, channel, this);
+        //UsageReporting.report(UsageReporting.kResourceType_AnalogChannel, channel, m_moduleNumber-1);
     }
 
     /**
@@ -127,7 +127,7 @@ public class AnalogChannel extends SensorBase implements PIDSource, LiveWindowSe
      * @return A scaled sample straight from this channel on the module.
      */
     public double getVoltage() {
-        return m_module.getVoltage(m_channel);
+        return 12.00;//m_module.getVoltage(m_channel);
     }
 
     /**

@@ -10,6 +10,7 @@ import javax.microedition.midlet.MIDletStateChangeException;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 public class RobotEmulator implements Runnable{
 	public static RobotBase robot;
@@ -33,9 +34,12 @@ public class RobotEmulator implements Runnable{
 		instance = new RobotEmulator();
 		try {
 			robot.startApp();
-		} catch (MIDletStateChangeException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			instance.t = null;
+			System.exit(1);
 		}
+		
 	}
 	
 	private Thread t;
@@ -50,7 +54,8 @@ public class RobotEmulator implements Runnable{
 		Scanner scan = new Scanner(System.in);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		lastPeriod = System.currentTimeMillis();
-		while (t.isAlive()) {
+		Thread thisThread = Thread.currentThread();
+		while (thisThread.equals(t)) {
 			String in = "";
 			try {
 				if (br.ready()) {
@@ -60,6 +65,11 @@ public class RobotEmulator implements Runnable{
 						DriverStation.instance.InDisabled(true);
 						System.out.println("Switched to teleop, Disabled");
 					}
+					if (in.equals("auto")) {
+						DriverStation.instance.InOperatorControl(true);
+						DriverStation.instance.InDisabled(true);
+						System.out.println("Switched to auto, Disabled");
+					}
 					if (in.equals("enable")) {
 						DriverStation.instance.InDisabled(false);
 						System.out.println("Enabling");
@@ -68,8 +78,23 @@ public class RobotEmulator implements Runnable{
 						DriverStation.instance.InDisabled(true);
 						System.out.println("Disabling");
 					}
+					if (in.startsWith("putNumber ")) {
+						NetworkTable.table.put(in.split(" ")[1], Double.valueOf(in.split(" ")[2]));
+						System.out.println("Set "+in.split(" ")[1]+" to value "+Double.valueOf(in.split(" ")[2]));
+					}
+					if (in.startsWith("putString ")) {
+						NetworkTable.table.put(in.split(" ")[1], in.split(" ")[2]);
+						System.out.println("Set "+in.split(" ")[1]+" to value "+in.split(" ")[2]);
+					}
+					if (in.startsWith("putBoolean ")) {
+						NetworkTable.table.put(in.split(" ")[1], Boolean.valueOf(in.split(" ")[2]));
+						System.out.println("Set "+in.split(" ")[1]+" to value "+Boolean.valueOf(in.split(" ")[2]));
+					}
+					if (in.startsWith("get ")) {
+						System.out.println(in.split(" ")[1]+": "+NetworkTable.table.get(in.split(" ")[1]));
+					}
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			if (System.currentTimeMillis()-lastPeriod>20) {
@@ -77,6 +102,7 @@ public class RobotEmulator implements Runnable{
 				lastPeriod = System.currentTimeMillis();
 			}
 		}
+		System.exit(1);
 	}
 	
 }
