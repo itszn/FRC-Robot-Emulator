@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj.util.CheckedAllocationException;
  */
 public class DigitalModule extends Module {
 
-	private static class RelayInfo {
+	public static class RelayInfo {
 		public boolean rev;
 		public boolean fwd;
 		public RelayInfo(boolean fwd, boolean rev) {
@@ -27,8 +27,8 @@ public class DigitalModule extends Module {
 		}
 	}
 	
-	private static int[] DIOChannels = new int[SensorBase.kDigitalChannels];
-	private static RelayInfo[] relayChannels = new RelayInfo[SensorBase.kRelayChannels];
+	public static int[] DIOChannels = new int[SensorBase.kDigitalChannels];
+	public static RelayInfo[] relayChannels = new RelayInfo[SensorBase.kRelayChannels];
     /**
      * Expected loop timing
      */

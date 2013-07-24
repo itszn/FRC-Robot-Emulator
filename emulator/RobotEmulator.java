@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.microedition.midlet.MIDletStateChangeException;
 
+import edu.wpi.first.wpilibj.DigitalModule;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
@@ -15,6 +17,7 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
 public class RobotEmulator implements Runnable{
 	public static RobotBase robot;
 	public static RobotEmulator instance;
+	public static ArrayList<Part> parts = new ArrayList<Part>();
 	public static void main (String[] args) {
 		if (args.length == 0) {
 			throw new RuntimeException("No robot class provided as argument");
@@ -32,6 +35,8 @@ public class RobotEmulator implements Runnable{
 		}
 		// TODO Start GUI for Emulator
 		instance = new RobotEmulator();
+		//window = new Window();
+		new Motor(25,25,100,50).channel=1;
 		try {
 			robot.startApp();
 		} catch (Exception e) {
@@ -49,13 +54,23 @@ public class RobotEmulator implements Runnable{
 		t.start();
 	}
 	long lastPeriod;
+	public static Window window;
 	@Override
 	public void run() {
+		window = new Window();
 		Scanner scan = new Scanner(System.in);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		lastPeriod = System.currentTimeMillis();
 		Thread thisThread = Thread.currentThread();
 		while (thisThread.equals(t)) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			for (Part p: parts)
+				p.update();
+			window.repaint();
 			String in = "";
 			try {
 				if (br.ready()) {
@@ -92,6 +107,13 @@ public class RobotEmulator implements Runnable{
 					}
 					if (in.startsWith("get ")) {
 						System.out.println(in.split(" ")[1]+": "+NetworkTable.table.get(in.split(" ")[1]));
+					}
+					if (in.startsWith("dio ")) {
+						System.out.println("DIO "+in.split(" ")[1]+": "+DigitalModule.DIOChannels[Integer.valueOf(in.split(" ")[1])-1]);
+					}
+					if (in.startsWith("setm ")) {
+						((TestBot) robot).setMotor(Double.valueOf(in.split(" ")[1]));
+						System.out.println("Set Motor to "+in.split(" ")[1]);
 					}
 				}
 			} catch (Exception e) {

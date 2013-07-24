@@ -6,9 +6,8 @@
 /*----------------------------------------------------------------------------*/
 package edu.wpi.first.wpilibj;
 
-import edu.wpi.first.wpilibj.DriverStationOrig.Alliance;
-import edu.wpi.first.wpilibj.communication.*;
-import edu.wpi.first.wpilibj.parsing.IInputOutput;
+import edu.wpi.first.wpilibj.DigitalModule.RelayInfo;
+import edu.wpi.first.wpilibj.communication.FRCControl;
 
 /**
  * Provide access to the network communication data to / from the Driver Station.
@@ -167,7 +166,17 @@ public class DriverStation{
     /** Only to be used to tell the Driver Station what code you claim to be executing
 	 *   for diagnostic purposes only
 	 * @param entering If true, starting disabled code; if false, leaving disabled code */
-	public void InDisabled(boolean entering) {m_inDisabled=entering;}
+	public void InDisabled(boolean entering) {
+		m_inDisabled=entering;
+		for (int pwm_index = 1; pwm_index <= DigitalModule.kPwmChannels; pwm_index++) {
+            DigitalModule.getInstance(1).setPWM(pwm_index, PWM.kPwmDisabled);
+            DigitalModule.getInstance(1).setPWMPeriodScale(pwm_index, PWM.PeriodMultiplier.k4X_val); // Set all to 4x by default.
+        }
+        
+        for (int i=1; i<= DigitalModule.kRelayChannels; i++) {
+        	 DigitalModule.getInstance(1).relayChannels[i-1] = new RelayInfo(false,false);
+        }
+	}
 
         /** Only to be used to tell the Driver Station what code you claim to be executing
 	 *   for diagnostic purposes only
