@@ -36,7 +36,7 @@ public class RobotEmulator implements Runnable{
 		// TODO Start GUI for Emulator
 		instance = new RobotEmulator();
 		//window = new Window();
-		new Motor(25,25,100,50).channel=1;
+		new MotorPart(25,25,100,50).channel=1;
 		try {
 			robot.startApp();
 		} catch (Exception e) {
@@ -110,6 +110,10 @@ public class RobotEmulator implements Runnable{
 					}
 					if (in.startsWith("dio ")) {
 						System.out.println("DIO "+in.split(" ")[1]+": "+DigitalModule.DIOChannels[Integer.valueOf(in.split(" ")[1])-1]);
+					}
+					if (in.startsWith("relay ")) {
+						DigitalModule.RelayInfo rel = DigitalModule.relayChannels[Integer.valueOf(in.split(" ")[1])-1];
+						System.out.println("Relay "+in.split(" ")[1]+": "+(rel.fwd?"Forward":(rel.rev?"Reverse":"Off")));
 					}
 					if (in.startsWith("setm ")) {
 						((TestBot) robot).setMotor(Double.valueOf(in.split(" ")[1]));

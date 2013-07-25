@@ -3,6 +3,7 @@ package emulator;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JComboBox;
@@ -15,14 +16,14 @@ import javax.swing.SpinnerNumberModel;
 
 import edu.wpi.first.wpilibj.DigitalModule;
 
-public class Motor extends Part {
+public class MotorPart extends Part {
 	int channel=0;
 	double maxSpeed = 1;
 	double speed = 0;
-	public Motor(int x, int y, int width, int height) {
+	public MotorPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
 		name = "Motor";
-		props = new JComponent[2];
+		props = new JComponent[3];
 		String[] items = new String[DigitalModule.kDigitalChannels+1];
 		items[0]="None";
 		for (int i=1; i<=DigitalModule.kDigitalChannels;i++)
@@ -33,18 +34,25 @@ public class Motor extends Part {
 		//JTextField f = new JTextField("1.00",4);
 		SpinnerNumberModel numberModel = new SpinnerNumberModel(1.0,0,30,.1);
 		JSpinner s = new JSpinner(numberModel);
-		
 		props[1] = s;
+		String[] types = {"Automatic","Manual"};
+		JComboBox<String> power = new JComboBox<String>(types);
+		power.setSelectedIndex(0);
+		props[2]=power;
+		
+		
 	}
 	
-	public Motor(int x, int y) {
+	public MotorPart(int x, int y) {
 		this(x, y, 100,50);
 	}
 
 	@Override
 	public void update() {
+		super.update();
+			
 		if (channel >0 && DigitalModule.DIOChannels[channel-1]>=4) {
-			speed = ((DigitalModule.DIOChannels[channel-1]-128d)/125d)*maxSpeed;
+			speed = ((DigitalModule.DIOChannels[channel-1]-128d)/125d)*maxSpeed*powered;
 		}
 		else
 			speed = 0.0;
@@ -56,11 +64,25 @@ public class Motor extends Part {
 		if (channel != 0) {
 			g.drawLine((channel>9?20:10), 11*(channel+1)-5, x, y);
 		}
-		g.drawString("Speed: "+speed, x, y+height+11);
+		if (connecting) {
+			Point p = RobotEmulator.window.draw.getMousePosition();
+			if (p!=null) {
+				g.setColor(Color.red);
+				g.drawLine(p.x,p.y, x, y);
+				g.setColor(Color.black);
+			}
+		}
+		else if (parent!=null) {
+			g.setColor(Color.red);
+			g.drawLine(parent.x, parent.y, x, y);
+			g.setColor(Color.black);
+		}
+		g.drawString("Speed: "+speed+" rps", x, y+height+11);
 	}
 
 	@Override
 	public void updateProperties() {
+		super.updateProperties();
 		channel = ((JComboBox)props[0]).getSelectedIndex();
 		try {
 			maxSpeed = Double.valueOf(((JSpinner)props[1]).getValue().toString());
@@ -74,7 +96,7 @@ public class Motor extends Part {
 		p.add(new JLabel(name));
 		JPanel n = new JPanel();
 			n.setLayout(new FlowLayout());
-			n.add(new JLabel("Port"));
+			n.add(new JLabel("DI/O Port"));
 			((JComboBox)props[0]).setSelectedIndex(channel);
 			n.add(props[0]);
 		p.add(n);
@@ -92,11 +114,10 @@ public class Motor extends Part {
 		super.actionPerformed(evn);
 		
 	}
-	
+
 	@Override
-	public void drawSelected(Graphics g) {
-		super.drawSelected(g);
-		g.setColor(Color.black);
+	public int outPuttingPower(Part p) {
+		return 0;
 	}
 
 

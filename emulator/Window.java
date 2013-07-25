@@ -34,6 +34,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	ButtonGroup enableGroup, modeGroup;
 	JRadioButton disable, enable, tele, auto;
 	static Part selectedPart = null;
+	public Part partConnecting = null;
 	public Window() {
 		super("Robot Emulator");
 		setSize(800,600);
@@ -45,7 +46,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 				BoxLayout layout = new BoxLayout(n, BoxLayout.Y_AXIS);
 				
 				n.setLayout(layout);
-				String[] types = {"Motor"};
+				String[] types = {"Motor","Relay","Light"};
 				partTypes = new JComboBox<String>(types);
 					partTypes.setSelectedIndex(0);
 					partTypes.addActionListener(this);
@@ -96,7 +97,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		shownInfo=info;
 	}
 	
-	private class Canvas extends JPanel{
+	class Canvas extends JPanel{
 		@Override
 		public void paint(Graphics g) {
 			super.paint(g);
@@ -107,6 +108,9 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			g.drawString("DI/O", 1, 11);
 			for (int i=1; i<=DigitalModule.kDigitalChannels;i++)
 				g.drawString(String.valueOf(i), 1, 11+11*i);
+			g.drawString("Relay", 1, 211);
+			for (int i=1; i<=DigitalModule.kRelayChannels;i++)
+				g.drawString(String.valueOf(i), 1, 211+11*i);
 			if (selectedPart!=null) {
 				selectedPart.drawSelected(g);
 			}
@@ -116,6 +120,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	public void closePref() {
 		this.remove(shownInfo);
 		this.add(info,BorderLayout.EAST);
+		partConnecting = null;
 		shownInfo = info;
 		revalidate();
 		repaint();
@@ -132,35 +137,54 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	private int relX, relY;
 	@Override
 	public void mouseClicked(MouseEvent evn) {
-		if (evn.getButton()==3) {
-			for (Part p: RobotEmulator.parts) {
-
-				//System.out.println(p.bound);
-				if (p.bound.contains(evn.getPoint())) {
-					System.out.println(evn.getPoint());
-					JPanel n = new JPanel();
-					JPanel pa = new JPanel();
-					p.getProperties(pa);
-					n.add(pa);
-					showPref(n);
-					selectedPart = p;
-					break;
+		if (info.equals(shownInfo)) {
+			if (evn.getButton()==3) {
+				for (Part p: RobotEmulator.parts) {
+	
+					//System.out.println(p.bound);
+					if (p.bound.contains(evn.getPoint())) {
+						System.out.println(evn.getPoint());
+						JPanel n = new JPanel();
+						JPanel pa = new JPanel();
+						p.getProperties(pa);
+						n.add(pa);
+						showPref(n);
+						selectedPart = p;
+						break;
+					}
 				}
+				repaint();
 			}
-			repaint();
+			else if (evn.getButton()==1) {
+				boolean flag = true;
+				for (Part p: RobotEmulator.parts) {
+					if (p.bound.contains(evn.getPoint())) {
+						selectedPart = p;
+						flag = false;
+						break;
+					}
+				}
+				if (flag)
+					selectedPart=null;
+				repaint();
+			}
 		}
-		else if (evn.getButton()==1) {
+		else if (partConnecting!=null && evn.getButton()==1) {
 			boolean flag = true;
 			for (Part p: RobotEmulator.parts) {
 				if (p.bound.contains(evn.getPoint())) {
-					selectedPart = p;
-					flag = false;
-					break;
+					if (p.children.size()<p.maxChildren&&p.usePower) {
+						partConnecting.setConnectParent(p);
+						p.children.add(partConnecting);
+						flag = false;
+						break;
+					}
 				}
 			}
-			if (flag)
-				selectedPart=null;
-			repaint();
+			if (flag) {
+				partConnecting.setConnectParent(null);
+			}
+			partConnecting = null;
 		}
 	}
 
@@ -208,9 +232,10 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 				partDragged.setX(1);
 			if (partDragged.getY()+1<0) 
 				partDragged.setY(1);
-			repaint();
 			
 		}
+
+		repaint();
 	}
 	
 	public static void setButtonTriggerKey (JButton b, int key) {
@@ -221,7 +246,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 
 	@Override
 	public void mouseMoved(MouseEvent evn) {
-		
+		repaint();
 	}
 
 	private int addX=30;
@@ -229,11 +254,17 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	public void actionPerformed(ActionEvent evn) {
 		if (evn.getActionCommand().equals("addPart")) {
 			if (partTypes.getSelectedIndex()==0) {
-				new Motor(addX,addX);
-				addX+=10;
-				if (addX>100)
-					addX=30;
+				new MotorPart(addX,addX);
 			}
+			if (partTypes.getSelectedIndex()==1) {
+				new RelayPart(addX,addX);
+			}
+			if (partTypes.getSelectedIndex()==2) {
+				new LightPart(addX,addX);
+			}
+			addX+=10;
+			if (addX>100)
+				addX=30;
 		}
 		else if (evn.getActionCommand().equals("enableRobot")) {
 			DriverStation.instance.InDisabled(false);
