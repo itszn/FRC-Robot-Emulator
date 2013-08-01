@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -18,6 +19,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
@@ -27,7 +31,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 
 public class Window extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
 	//JFrame frame;
+	public static File saveFile = null;
 	Canvas draw;
+	JMenuBar menuBar;
+	JMenu fileMenu;
 	JPanel info;
 	JPanel shownInfo;
 	JComboBox<String> partTypes;
@@ -40,6 +47,35 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		setSize(800,600);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout(5,5));
+		
+		menuBar = new JMenuBar();
+		fileMenu = new JMenu("File");
+		menuBar.add(fileMenu);
+		JMenuItem i = new JMenuItem("New");
+		i.addActionListener(this);
+		i.setActionCommand("new");
+		fileMenu.add(i);
+		i = new JMenuItem("Open...");
+		i.addActionListener(this);
+		i.setActionCommand("open");
+		fileMenu.add(i);
+		fileMenu.addSeparator();
+		i = new JMenuItem("Save");
+		i.addActionListener(this);
+		i.setActionCommand("save");
+		fileMenu.add(i);
+		i = new JMenuItem("Save As...");
+		i.setActionCommand("saveAs");
+		fileMenu.add(i);
+		i.addActionListener(this);
+		fileMenu.addSeparator();
+		i = new JMenuItem("Close");
+		i.addActionListener(this);
+		i.setActionCommand("close");
+		fileMenu.add(i);
+		this.setJMenuBar(menuBar);
+		
+		
 		
 		info = new JPanel();
 			JPanel n = new JPanel();
@@ -95,6 +131,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		setVisible(true);
 		
 		shownInfo=info;
+		//SaveManager.instance.callSaveData();
 	}
 	
 	class Canvas extends JPanel{
@@ -286,6 +323,13 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			disable.setSelected(true);
 			System.out.println("Switched to auto, Disabled");
 		}
+		else if (evn.getActionCommand().equals("save"))
+			SaveManager.instance.callSaveData();
+		else if (evn.getActionCommand().equals("saveAs"))
+				SaveManager.instance.callSaveDataAs();
+		else if (evn.getActionCommand().equals("open"))
+			SaveManager.instance.callLoadData();
+		//System.out.println(evn.getActionCommand());
 		repaint();
 	}
 }

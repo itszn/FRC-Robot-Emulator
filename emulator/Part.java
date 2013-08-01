@@ -7,7 +7,9 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -16,8 +18,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public abstract class Part implements ActionListener{
-	String name = "Part";
+public abstract class Part implements ActionListener, Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4753975558253506016L;
+	public UUID uuid = null; 
+	public UUID tempParentUUID = null;
+	static String name = "Part";
 	boolean connecting = false;
 	boolean connectionOption = false;
 	public int maxChildren = 0;
@@ -33,6 +41,7 @@ public abstract class Part implements ActionListener{
 	JComboBox<String> powerChoice;
 	protected int x=0, y=0, width=100, height=100;
 	public Part(int x, int y, int width, int height) {
+		this.uuid = UUID.randomUUID();
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -239,5 +248,9 @@ public abstract class Part implements ActionListener{
 			n.add(pa);
 			RobotEmulator.window.showPref(n);
 		}
+	}
+	
+	public String toString() {
+		return this.getClass()+" ("+this.x+","+this.y+") UUID: "+this.uuid;
 	}
 }
