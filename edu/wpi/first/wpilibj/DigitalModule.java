@@ -27,7 +27,9 @@ public class DigitalModule extends Module {
 		}
 	}
 	
+	public static int[] PWMChannels = new int[SensorBase.kPwmChannels];
 	public static int[] DIOChannels = new int[SensorBase.kDigitalChannels];
+	
 	public static RelayInfo[] relayChannels = new RelayInfo[SensorBase.kRelayChannels];
     /**
      * Expected loop timing
@@ -117,7 +119,7 @@ public class DigitalModule extends Module {
      */
     public void setPWM(final int channel, final int value) {
         checkPWMChannel(channel);
-        DIOChannels[channel-1]  = value;
+        PWMChannels[channel-1]  = value;
     }
 
     /**
@@ -128,7 +130,7 @@ public class DigitalModule extends Module {
      */
     public int getPWM(final int channel) {
         checkPWMChannel(channel);
-        return DIOChannels[channel-1];
+        return PWMChannels[channel-1];
     }
 
     /**
@@ -269,13 +271,13 @@ public class DigitalModule extends Module {
      * @return The value of the selected channel
      */
     public boolean getDIO(final int channel) {
-        final int currentDIO = m_fpgaDIO.readDI();
+        final int currentDIO = DIOChannels[channel-1];
 
         // Shift 00000001 over channel-1 places.
         // AND it against the currentDIO
         // if it == 0, then return 0
         // else return 1
-        return ((currentDIO >> remapDigitalChannel(channel - 1)) & 1) == 1;
+        return !(currentDIO == 0);
     }
 
     /**
@@ -284,7 +286,7 @@ public class DigitalModule extends Module {
      * @return The state of all the Digital IO lines in hardware order
      */
     public short getAllDIO() {
-        return (short) m_fpgaDIO.readDI();
+        return (short) 0;
     }
 
     /**

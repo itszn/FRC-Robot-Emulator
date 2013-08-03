@@ -114,7 +114,7 @@ public final class UsageReporting {
     //Smart Dashboard
     public static final int kSmartDashboard_Instance = 1;
     
-    private static final Function nUsageReporting_reportFn = NativeLibrary.getDefaultInstance().getFunction("FRC_NetworkCommunication_nUsageReporting_report");
+    //private static final Function nUsageReporting_reportFn = NativeLibrary.getDefaultInstance().getFunction("FRC_NetworkCommunication_nUsageReporting_report");
 
     /**
      * Report the usage of a resource of interest.

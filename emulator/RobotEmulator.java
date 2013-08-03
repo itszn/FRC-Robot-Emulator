@@ -64,7 +64,7 @@ public class RobotEmulator implements Runnable{
 		Thread thisThread = Thread.currentThread();
 		while (thisThread.equals(t)) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(10);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
@@ -108,8 +108,11 @@ public class RobotEmulator implements Runnable{
 					if (in.startsWith("get ")) {
 						System.out.println(in.split(" ")[1]+": "+NetworkTable.table.get(in.split(" ")[1]));
 					}
+					if (in.startsWith("pwm ")) {
+						System.out.println("PWM "+in.split(" ")[1]+": "+DigitalModule.PWMChannels[Integer.valueOf(in.split(" ")[1])-1]);
+					}
 					if (in.startsWith("dio ")) {
-						System.out.println("DIO "+in.split(" ")[1]+": "+DigitalModule.DIOChannels[Integer.valueOf(in.split(" ")[1])-1]);
+						System.out.println("DIO "+in.split(" ")[1]+": "+DigitalModule.getInstance(1).getDIO(Integer.valueOf(in.split(" ")[1])));
 					}
 					if (in.startsWith("relay ")) {
 						DigitalModule.RelayInfo rel = DigitalModule.relayChannels[Integer.valueOf(in.split(" ")[1])-1];

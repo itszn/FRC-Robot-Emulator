@@ -3,6 +3,7 @@ package emulator;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,10 +19,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public abstract class Part implements ActionListener, Serializable{
-	/**
-	 * 
-	 */
+public abstract class Part implements ActionListener/*, Serializable*/{
+	
 	private static final long serialVersionUID = 4753975558253506016L;
 	public UUID uuid = null; 
 	public UUID tempParentUUID = null;
@@ -40,6 +39,10 @@ public abstract class Part implements ActionListener, Serializable{
 	public Rectangle bound;
 	JComboBox<String> powerChoice;
 	protected int x=0, y=0, width=100, height=100;
+	public Point powerInPoint = new Point(0,0);
+	public Point powerOutPoint = new Point(0,0);
+	public Point pwmPoint = new Point(0,0);
+	
 	public Part(int x, int y, int width, int height) {
 		this.uuid = UUID.randomUUID();
 		this.x = x;
@@ -69,7 +72,7 @@ public abstract class Part implements ActionListener, Serializable{
 			powered = 1;
 		ArrayList<Part> toRemove = new ArrayList<Part>();
 		for (Part p: children) {
-			if (!p.exists)
+			if (!p.exists||p.autoPower)
 				toRemove.add(p);
 		}
 		for (Part p: toRemove) {
@@ -80,6 +83,9 @@ public abstract class Part implements ActionListener, Serializable{
 	public void updateProperties() {
 		if (usePower) {
 			autoPower = powerChoice.getSelectedIndex()==0;
+			if (autoPower) {
+				parent = null;
+			}
 		}
 	}
 	public void getProperties(JPanel p) {
@@ -160,6 +166,7 @@ public abstract class Part implements ActionListener, Serializable{
 			connectionOption = false;
 		}
 		else if (evn.getActionCommand().equals("save")) {
+			Window.changes = true;
 			RobotEmulator.window.closePref();
 			this.updateProperties();
 			connecting = false;
@@ -167,6 +174,7 @@ public abstract class Part implements ActionListener, Serializable{
 			connectionOption = false;
 		}
 		else if (evn.getActionCommand().equals("delete")) {
+			Window.changes = true;
 			RobotEmulator.window.closePref();
 			this.remove();
 			connecting = false;
@@ -174,6 +182,7 @@ public abstract class Part implements ActionListener, Serializable{
 			connectionOption = false;
 		}
 		else if (evn.getActionCommand().equals("changePower")) {
+			Window.changes = true;
 			justChangedPower = true;
 			int i = powerChoice.getSelectedIndex();
 			if (i==0) {

@@ -13,17 +13,19 @@ import java.util.UUID;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
+import edu.wpi.first.wpilibj.DriverStation;
+
 public class SaveManager{
 	public static SaveManager instance = new SaveManager();
 	
-	public void callSaveData() {
+	public boolean callSaveData() {
 		if (Window.saveFile==null)
-			callSaveDataAs();
+			return callSaveDataAs();
 		else
-			saveToFile(Window.saveFile);
+			return saveToFile(Window.saveFile);
 	}
 	
-	public void callSaveDataAs() {
+	public boolean callSaveDataAs() {
 		JFileChooser cho = new JFileChooser();
 		cho.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		FileFilter emu = new EmulatorFileFilter();
@@ -39,8 +41,9 @@ public class SaveManager{
 			if (ext==null||!ext.equals("emu"))
 				f = new File(f.getAbsolutePath()+".emu");
 			
-			saveToFile(f);
+			return saveToFile(f);
 		}
+		return false;
 	}
 	
 	public void saveToFileSer(File f) {
@@ -61,7 +64,7 @@ public class SaveManager{
 		
 	}
 	
-	public void saveToFile(File f) {
+	public boolean saveToFile(File f) {
 		try {
 			PrintWriter pw = new PrintWriter(new FileOutputStream(f));
 			for (Part p: RobotEmulator.parts) {
@@ -88,19 +91,27 @@ public class SaveManager{
 				if (p instanceof RelayPart) {
 					pw.println(((RelayPart) p).channel);
 				}
+				if (p instanceof LimitSwitchPart) {
+					pw.println(((LimitSwitchPart) p).channel);
+					pw.println(((LimitSwitchPart) p).activated);
+				}
 			}
 			pw.flush();
 			pw.close();
 			System.out.println("Saved to "+f);
 			Window.saveFile = f;
+			Window.changes = false;
+			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.err.println("Unable to save to "+f);
+			return false;
 		}
 		
 		
 	}
 	
-	public void callLoadData() {
+	public boolean callLoadData() {
 		JFileChooser cho = new JFileChooser();
 		cho.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		FileFilter emu = new EmulatorFileFilter();
@@ -114,11 +125,12 @@ public class SaveManager{
 			File f = cho.getSelectedFile();
 			String ext = getExtension(f);
 			if (ext!=null&&ext.equals("emu"))
-				openFile(f);
+				return openFile(f);
 		}
+		return false;
 	}
 	
-	public void openFile(File f) {
+	public boolean openFile(File f) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			ArrayList<Part> tempParts = new ArrayList<Part>();
@@ -142,16 +154,22 @@ public class SaveManager{
 					int width = Integer.valueOf(br.readLine());
 					int height = Integer.valueOf(br.readLine());
 					if (c.equals(MotorPart.class)) {
-						p = new MotorPart(x,y,width,height);
+						p = new MotorPart(x,y/*,width,height*/);
 						((MotorPart)p).channel = Integer.valueOf(br.readLine());
 						((MotorPart)p).maxSpeed = Double.valueOf(br.readLine());
 					}
 					if (c.equals(RelayPart.class)) {
-						p = new RelayPart(x,y,width,height);
+						p = new RelayPart(x,y/*,width,height*/);
 						((RelayPart)p).channel = Integer.valueOf(br.readLine());
 					}
 					if (c.equals(LightPart.class)) {
-						p = new LightPart(x,y,width,height);
+						p = new LightPart(x,y/*,width,height*/);
+					}
+					if (c.equals(LimitSwitchPart.class)) {
+						p = new LimitSwitchPart(x,y/*,width,height*/);
+						((LimitSwitchPart)p).channel = Integer.valueOf(br.readLine());
+						((LimitSwitchPart)p).activated = Boolean.valueOf(br.readLine());
+						
 					}
 					p.uuid = id;
 					p.tempParentUUID = parentId;
@@ -166,8 +184,10 @@ public class SaveManager{
 				else {
 					Part parent = null;
 					for (Part pa: tempParts) {
-						if (pa.uuid.equals(p.tempParentUUID))
+						if (pa.uuid.equals(p.tempParentUUID)) {
 							parent = pa;
+							pa.children.add(p);
+						}
 					}
 					if (parent==null){
 						System.err.println("Warning: Could not find specified parent "+p.tempParentUUID+" for part "+p);
@@ -179,13 +199,19 @@ public class SaveManager{
 				}
 			}
 			RobotEmulator.parts = tempParts;
+			Window.changes = false;
 			RobotEmulator.window.partConnecting = null;
 			RobotEmulator.window.closePref();
+			Window.selectedPart = null;
+			DriverStation.instance.InDisabled(true);
+			DriverStation.instance.InOperatorControl(true);
 			System.out.println("Loaded from "+f);
 			Window.saveFile = f;
+			return true;
 		} catch (Exception e) {
-			System.err.println("Could not read file "+f);
 			e.printStackTrace();
+			System.err.println("Could not read file "+f);
+			return false;
 		}
 	}
 	

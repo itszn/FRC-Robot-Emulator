@@ -10,7 +10,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -22,6 +25,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
@@ -32,6 +36,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class Window extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
 	//JFrame frame;
 	public static File saveFile = null;
+	public static boolean changes = false; 
 	Canvas draw;
 	JMenuBar menuBar;
 	JMenu fileMenu;
@@ -45,7 +50,13 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	public Window() {
 		super("Robot Emulator");
 		setSize(800,600);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				closeWindow();
+			}
+		});
 		setLayout(new BorderLayout(5,5));
 		
 		menuBar = new JMenuBar();
@@ -82,7 +93,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 				BoxLayout layout = new BoxLayout(n, BoxLayout.Y_AXIS);
 				
 				n.setLayout(layout);
-				String[] types = {"Motor","Relay","Light"};
+				String[] types = {"Motor","Relay","Light","Limit Switch"};
 				partTypes = new JComboBox<String>(types);
 					partTypes.setSelectedIndex(0);
 					partTypes.addActionListener(this);
@@ -142,12 +153,15 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			this.setBackground(Color.white);
 			for(Part p: RobotEmulator.parts)
 				p.paint(g);
-			g.drawString("DI/O", 1, 11);
-			for (int i=1; i<=DigitalModule.kDigitalChannels;i++)
+			g.drawString("PWM", 1, 11);
+			for (int i=1; i<=DigitalModule.kPwmChannels;i++)
 				g.drawString(String.valueOf(i), 1, 11+11*i);
-			g.drawString("Relay", 1, 211);
+			g.drawString("Relay", 1, 132);
 			for (int i=1; i<=DigitalModule.kRelayChannels;i++)
-				g.drawString(String.valueOf(i), 1, 211+11*i);
+				g.drawString(String.valueOf(i), 1, 132+11*i);
+			g.drawString("Digital I/O", 1, 231);
+			for (int i=1; i<=DigitalModule.kDigitalChannels;i++)
+				g.drawString(String.valueOf(i), 1, 231+11*i);
 			if (selectedPart!=null) {
 				selectedPart.drawSelected(g);
 			}
@@ -177,7 +191,6 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		if (info.equals(shownInfo)) {
 			if (evn.getButton()==3) {
 				for (Part p: RobotEmulator.parts) {
-	
 					//System.out.println(p.bound);
 					if (p.bound.contains(evn.getPoint())) {
 						System.out.println(evn.getPoint());
@@ -221,6 +234,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			if (flag) {
 				partConnecting.setConnectParent(null);
 			}
+			Window.changes = true;
 			partConnecting = null;
 		}
 	}
@@ -259,6 +273,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	@Override
 	public void mouseDragged(MouseEvent evn) {
 		if (partDragged!=null) {
+			Window.changes = true;
 			partDragged.setX(evn.getPoint().x - relX);
 			partDragged.setY(evn.getPoint().y - relY);
 			if (partDragged.getX()+partDragged.getWidth()+1>draw.getSize().width)
@@ -299,6 +314,10 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			if (partTypes.getSelectedIndex()==2) {
 				new LightPart(addX,addX);
 			}
+			if (partTypes.getSelectedIndex()==3) {
+				new LimitSwitchPart(addX,addX);
+			}
+			changes = true;
 			addX+=10;
 			if (addX>100)
 				addX=30;
@@ -326,10 +345,81 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		else if (evn.getActionCommand().equals("save"))
 			SaveManager.instance.callSaveData();
 		else if (evn.getActionCommand().equals("saveAs"))
-				SaveManager.instance.callSaveDataAs();
+			SaveManager.instance.callSaveDataAs();
 		else if (evn.getActionCommand().equals("open"))
-			SaveManager.instance.callLoadData();
+			openFile();
+		else if (evn.getActionCommand().equals("close")) {
+			closeWindow();
+		}
+		else if (evn.getActionCommand().equals("new")) {
+			openNew();
+		}
 		//System.out.println(evn.getActionCommand());
 		repaint();
+	}
+	
+	public void closeWindow() {
+		boolean flag = !changes;
+		if (changes) {
+			Object[] opts = {"Save and Close","Close Without Saving","Cancle"};
+			int save = JOptionPane.showOptionDialog(this, "Do you want to save before exiting?","Save?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, opts, opts[0]);
+			if (save==0) {
+				if (SaveManager.instance.callSaveData()){
+					flag = true;
+				}
+			}
+			else if (save==1) {
+				flag = true;
+			}
+		}
+		if (flag) {
+			this.dispose();
+			System.exit(0);
+		}
+	}
+	
+	public void openFile() {
+		boolean flag = !changes;
+		if (changes) {
+			Object[] opts = {"Save and Open File","Open File Without Saving","Cancle"};
+			int save = JOptionPane.showOptionDialog(this, "Do you want to save before opening a file?","Save?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, opts, opts[0]);
+			if (save==0) {
+				if (SaveManager.instance.callSaveData()){
+					flag = true;
+				}
+			}
+			else if (save==1) {
+				flag = true;
+			}
+		}
+		
+		if (flag) {
+			SaveManager.instance.callLoadData();
+		}
+	}
+	
+	public void openNew() {
+		boolean flag = !changes;
+		if (changes) {
+			Object[] opts = {"Save and Open New","Open New Without Saving","Cancle"};
+			int save = JOptionPane.showOptionDialog(this, "Do you want to save before opening a new file?","Save?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, opts, opts[0]);
+			if (save==0) {
+				if (SaveManager.instance.callSaveData()){
+					flag = true;
+				}
+			}
+			else if (save==1) {
+				flag = true;
+			}
+		}
+		if (flag) {
+			RobotEmulator.parts = new ArrayList<Part>();
+			RobotEmulator.window.partConnecting = null;
+			RobotEmulator.window.closePref();
+			DriverStation.instance.InDisabled(true);
+			DriverStation.instance.InOperatorControl(true);
+			Window.selectedPart = null;
+			changes = false;
+		}
 	}
 }
