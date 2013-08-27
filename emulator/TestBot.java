@@ -1,7 +1,13 @@
 package emulator;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
+import javax.microedition.io.Connector;
+
+import com.sun.squawk.microedition.io.FileConnection;
+
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DigitalModule;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Relay;
@@ -18,7 +24,7 @@ public class TestBot extends IterativeRobot{
 		motorR = new Jaguar(2);
 		relay = new Relay(1);
 		limitSwitch = new DigitalInput(1);
-		this.teleopInit();
+		//this.teleopInit();
 	}
 	
 	public void disabledInit() {
@@ -34,17 +40,28 @@ public class TestBot extends IterativeRobot{
 		motorL.set(0);
 		motorR.set(0);
 		relay.set(Value.kReverse);
+		FileConnection test = (FileConnection) Connector.open("file://" + "src/res/stest.txt");
+		try {
+			test.create();
+			OutputStreamWriter writer = new OutputStreamWriter(test.openOutputStream());
+			writer.write("test");
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void teleopPeriodic() {
 		super.teleopPeriodic();
 		motorL.set(speed);
 		motorR.set(-speed);
-		if (limitSwitch.get()) {
+		if (!limitSwitch.get()) {
 			if (speed<=1)
-				speed += 1d/50d;
+				speed -= 1d/50d;
 			else
-				speed=1;
+				speed=-1;
 		}
 		else
 			speed=0;

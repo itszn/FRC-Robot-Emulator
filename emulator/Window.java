@@ -132,6 +132,8 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 					n2.add(auto);
 					n2.setBorder(BorderFactory.createLoweredBevelBorder());
 				n.add(n2);
+
+				n.add(new JoystickGUI(1));
 			info.add(n);
 		add(info,BorderLayout.EAST);
 		

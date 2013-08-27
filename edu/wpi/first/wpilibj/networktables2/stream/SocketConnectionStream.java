@@ -54,11 +54,7 @@ public class SocketConnectionStream implements IOStream{
 		} catch(IOException e){
 			//just ignore and close the rest of the stream
 		}
-		try{
 			socket.close();
-		} catch(IOException e){
-			//just ignore and assume socket is now closed
-		}
 	}
 
 }

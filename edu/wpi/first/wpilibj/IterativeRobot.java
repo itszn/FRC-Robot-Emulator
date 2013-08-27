@@ -7,6 +7,7 @@
 package edu.wpi.first.wpilibj;
 
 import com.sun.squawk.*;
+
 import edu.wpi.first.wpilibj.communication.FRCControl;
 import edu.wpi.first.wpilibj.communication.UsageReporting;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -173,6 +174,12 @@ public class IterativeRobot extends RobotBase {
                 marker = new Object(); // start counting objects after 1st loop completes - ignore class initialization
             }
             //m_ds.waitForData();
+            try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
         if (TRACE_LOOP_ALLOCATIONS) {
             GC.printHeapStats(marker, false);

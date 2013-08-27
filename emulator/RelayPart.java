@@ -61,6 +61,20 @@ public class RelayPart extends Part{
 			BufferedImage i = ImageIO.read(ClassLoader.getSystemResource("res/spike.png"));
 			g.drawImage(i, x, y, new Color(1,1,1,0), RobotEmulator.window);
 		} catch(IOException e){};
+		if (channel == 0)
+			g.setColor(Color.red);
+		else {
+			if (powerOut<0) {
+				g.setColor(Color.orange);
+			}
+			else if(powerOut>0)
+				g.setColor(Color.green);
+			else if (powerOut==0)
+				g.setColor(Color.yellow);
+		}
+		if (powered!=0)
+			g.fillOval(x+53, y+38, 6, 6);
+		g.setColor(Color.black);
 		if (channel != 0) {
 			g.drawLine((channel>9?20:10), 121+11*(channel+1)-5, x+pwmPoint.x, y+pwmPoint.y);
 		}

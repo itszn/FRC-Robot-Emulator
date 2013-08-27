@@ -492,10 +492,7 @@ public class Preferences {
                 ex.printStackTrace();
             } finally {
                 if (file != null) {
-                    try {
-                        file.close();
-                    } catch (IOException ex) {
-                    }
+                    file.close();
                 }
                 NetworkTable.getTable(TABLE_NAME).putBoolean(SAVE_FIELD, false);
             }
@@ -633,10 +630,7 @@ public class Preferences {
             }
 
             if (file != null) {
-                try {
-                    file.close();
-                } catch (IOException ex) {
-                }
+                file.close();
             }
 
             if (comment != null) {

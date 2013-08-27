@@ -114,8 +114,8 @@ public class Climber {
         {
             if (StepSystem.inTraining())
             {
-                //StepSystem.stopTraining();
-                //StepSystem.loadSteps();
+                StepSystem.stopTraining();
+                StepSystem.loadSteps();
             }
             
         }

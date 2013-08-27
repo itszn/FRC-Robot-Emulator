@@ -33,7 +33,7 @@ public class RobotEmulator implements Runnable{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// TODO Start GUI for Emulator
+		System.out.println("Starting robot code at "+args[0]);
 		instance = new RobotEmulator();
 		//window = new Window();
 		new MotorPart(25,25,100,50).channel=1;

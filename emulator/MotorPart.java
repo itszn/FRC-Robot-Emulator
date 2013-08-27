@@ -103,9 +103,25 @@ public class MotorPart extends Part {
 		catch (IOException e) {}
 		//ourG.setTransform(new AffineTransform());
 		g.drawRect(x, y, width, height);
+		if (channel == 0)
+			g.setColor(Color.red);
+		else {
+			if (speed<0) {
+				g.setColor(Color.orange);
+			}
+			else if(speed>0)
+				g.setColor(Color.green);
+			else if (speed==0)
+				g.setColor(Color.yellow);
+		}
+		if (powered!=0)
+			g.fillOval(x+22, y+33, 6, 6);
+		g.setColor(Color.black);
+		
 		if (channel != 0) {
 			g.drawLine((channel>9?20:10), 11*(channel+1)-5, x+pwmPoint.x, y+pwmPoint.y);
 		}
+		
 		if (connecting) {
 			Point p = RobotEmulator.window.draw.getMousePosition();
 			if (p!=null) {
