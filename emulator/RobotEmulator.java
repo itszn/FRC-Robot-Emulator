@@ -18,6 +18,9 @@ public class RobotEmulator implements Runnable{
 	public static RobotBase robot;
 	public static RobotEmulator instance;
 	public static ArrayList<Part> parts = new ArrayList<Part>();
+	
+	public static boolean autoUpdate = true;
+	
 	public static void main (String[] args) {
 		if (args.length == 0) {
 			throw new RuntimeException("No robot class provided as argument");
@@ -45,6 +48,7 @@ public class RobotEmulator implements Runnable{
 			System.exit(1);
 		}
 		
+		
 	}
 	
 	private Thread t;
@@ -58,6 +62,8 @@ public class RobotEmulator implements Runnable{
 	@Override
 	public void run() {
 		window = new Window();
+		if (autoUpdate)
+			Updater.checkUpdate(true);
 		Scanner scan = new Scanner(System.in);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		lastPeriod = System.currentTimeMillis();
