@@ -14,6 +14,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import javax.swing.BoxLayout;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -22,7 +24,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
 public class Updater {
-	private static double version = 1.0;
+	protected static double version = 1.1;
 	//private static boolean eclipseFlag = false;
 	//private static boolean netbeansFlag = false;
 	//private static boolean updateFound = true;
@@ -60,6 +62,7 @@ public class Updater {
 			vIn.close();
 		} catch (Exception e) {
 			System.err.println("Could not connect to update server.");
+			JOptionPane.showMessageDialog(null, "Could not connect to the update server.\nPlease check your connection settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		if (doUpdate) {
@@ -93,7 +96,7 @@ public class Updater {
 				System.out.println("Eclipse Detected");
 				String l = in.readLine();
 				while (l!=null) {
-					if (l.matches("\t<classpathentry kind=\"lib\" path\".*?frcEmulator.jar\"/?>")) {
+					if (l.matches("\t<classpathentry kind=\"lib\" path=\".*?frcEmulator.jar\"/?>")) {
 						if (l.charAt(l.length()-2)=='/')
 							path = l.substring(34,l.length()-3);
 						else
@@ -140,24 +143,53 @@ public class Updater {
 			}
 			
 			if (!path.equals("") && (netbeansFlag || eclipseFlag)) {
-				
+				JDialog load = new JDialog();
 					try {
+						load.setSize(300, 100);
+						load.setAutoRequestFocus(true);
+
+						load.add(new JLabel("Downloading Update..."));
+						load.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+						load.setLocation(RobotEmulator.window.getLocation().x+(int)(RobotEmulator.window.getSize().width/2-150), RobotEmulator.window.getLocation().y+(int)(RobotEmulator.window.getSize().height/2-50));
+						RobotEmulator.window.setEnabled(false);
 						System.out.println("Downloading Update");
+						load.setVisible(true);
 						URL website = new URL(dl);
 						ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 						FileOutputStream fos = new FileOutputStream(path);
 						fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-						JOptionPane.showMessageDialog(null, "The update has been download.\nPlease reboot the emulator.", "Download Successful", JOptionPane.INFORMATION_MESSAGE);
+						load.dispose();
+						RobotEmulator.window.setEnabled(true);
 						
+						JOptionPane.showMessageDialog(null, "The update has been download.\nPlease reboot the emulator.", "Download Successful", JOptionPane.INFORMATION_MESSAGE);
+						boolean flag = !Window.changes;
+						if (Window.changes) {
+							Object[] opts = {"Save and Close","Close Without Saving"};
+							int save = JOptionPane.showOptionDialog(null, "Do you want to save before exiting?","Save?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, opts, opts[0]);
+							if (save==0) {
+								if (SaveManager.instance.callSaveData()){
+									flag = true;
+								}
+							}
+							else if (save==1) {
+								flag = true;
+							}
+						}
+						RobotEmulator.window.dispose();
+						System.exit(0);
 					} catch (IOException e) {
+						load.dispose();
+						RobotEmulator.window.setEnabled(true);
 						System.err.println("Unable to connect to the update servers");
+						JOptionPane.showMessageDialog(null, "Could not connect to the update server.\nPlease check your connection settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
+						
 						e.printStackTrace();
 					}
 				
 			}
 			else {
-				System.err.println("Unable to find frcEmulator.jar, cannot update. Please redownload the jar.");
-				JOptionPane.showMessageDialog(null, "The update failed to download.\nCheck your internet connection and your project settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
+				System.err.println("Unable to find frcEmulator.jar, cannot update. Please check the class path.");
+				JOptionPane.showMessageDialog(null, "Emulator jar could not be found. Please check the classpath.", "Download Failed", JOptionPane.ERROR_MESSAGE);
 				
 			}
 		}

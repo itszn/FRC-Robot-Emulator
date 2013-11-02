@@ -18,6 +18,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class SaveManager{
 	public static SaveManager instance = new SaveManager();
 	
+	public static void initSave() {
+		System.out.println("Save Manager Loaded");
+	}
+	
 	public boolean callSaveData() {
 		if (Window.saveFile==null)
 			return callSaveDataAs();

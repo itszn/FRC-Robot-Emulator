@@ -19,6 +19,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -40,11 +41,13 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	Canvas draw;
 	JMenuBar menuBar;
 	JMenu fileMenu;
+	JMenu updateMenu;
 	JPanel info;
 	JPanel shownInfo;
 	JComboBox<String> partTypes;
 	ButtonGroup enableGroup, modeGroup;
 	JRadioButton disable, enable, tele, auto;
+	JCheckBoxMenuItem autoUpdateOption;
 	static Part selectedPart = null;
 	public Part partConnecting = null;
 	public Window() {
@@ -61,7 +64,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
-		menuBar.add(fileMenu);
+		
 		JMenuItem i = new JMenuItem("New");
 		i.addActionListener(this);
 		i.setActionCommand("new");
@@ -84,8 +87,19 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		i.addActionListener(this);
 		i.setActionCommand("close");
 		fileMenu.add(i);
+		menuBar.add(fileMenu);
+		updateMenu = new JMenu("Update");
+		i = new JMenuItem("Check For Update");
+		i.addActionListener(this);
+		i.setActionCommand("checkUpdate");
+		updateMenu.add(i);
+		autoUpdateOption = new JCheckBoxMenuItem("Preform Update Check On Startup");
+		autoUpdateOption.setState(RobotEmulator.autoUpdate);
+		autoUpdateOption.addActionListener(this);
+		autoUpdateOption.setActionCommand("updateCheckbox");
+		updateMenu.add(autoUpdateOption);
+		menuBar.add(updateMenu);
 		this.setJMenuBar(menuBar);
-		
 		
 		
 		info = new JPanel();
@@ -355,6 +369,13 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		}
 		else if (evn.getActionCommand().equals("new")) {
 			openNew();
+		}
+		else if (evn.getActionCommand().equals("checkUpdate")) {
+			Updater.checkUpdate(false);
+		}
+		else if (evn.getActionCommand().equals("updateCheckbox")) {
+			RobotEmulator.autoUpdate = autoUpdateOption.getState();
+			ConfigManager.saveConfig();
 		}
 		//System.out.println(evn.getActionCommand());
 		repaint();

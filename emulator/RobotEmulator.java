@@ -23,20 +23,25 @@ public class RobotEmulator implements Runnable{
 	
 	public static void main (String[] args) {
 		if (args.length == 0) {
-			throw new RuntimeException("No robot class provided as argument");
+			robot = new TestBot();
+			System.err.println("No class given, defaulting to TestBot");
+		} else {
+			try {
+				robot = (RobotBase) Class.forName(args[0]).newInstance();
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException("Robot class not found");
+			} catch (InstantiationException e) {
+				throw new RuntimeException("Invalid robot constructor. Must contain No parameters");
+			} catch (ClassCastException e) {
+				throw new RuntimeException("Robot Class not subclass of edu.wpi.first.wpilibj.RobotBase");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println("Starting robot code at "+args[0]);
 		}
-		try {
-			robot = (RobotBase) Class.forName(args[0]).newInstance();
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException("Robot class not found");
-		} catch (InstantiationException e) {
-			throw new RuntimeException("Invalid robot constructor. Must contain No parameters");
-		} catch (ClassCastException e) {
-			throw new RuntimeException("Robot Class not subclass of edu.wpi.first.wpilibj.RobotBase");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println("Starting robot code at "+args[0]);
+		System.out.println("Started Emulator Version " + Updater.version);
+		SaveManager.initSave();
+		ConfigManager.loadConfig();
 		instance = new RobotEmulator();
 		//window = new Window();
 		new MotorPart(25,25,100,50).channel=1;
