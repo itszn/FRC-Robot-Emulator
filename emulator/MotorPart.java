@@ -27,12 +27,13 @@ import javax.swing.SpinnerNumberModel;
 
 import edu.wpi.first.wpilibj.DigitalModule;
 
-public class MotorPart extends Part {
+public class MotorPart extends Part implements IPowerConnector {
 	int channel=0;
 	double maxSpeed = 1;
 	double speed = 0;
 	long lastFrame = -1;
 	double rot = 0;
+	PowerConnector powerConnector = new PowerConnector(this);
 	
 	public MotorPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
@@ -53,9 +54,9 @@ public class MotorPart extends Part {
 		JComboBox<String> power = new JComboBox<String>(types);
 		power.setSelectedIndex(0);
 		props[2]=power;
-		powerInPoint = new Point(7,15);
+		powerConnector.powerInPoint = new Point(7,15);
 		pwmPoint = new Point(13,44);
-		powerOutPoint = new Point(43,15);
+		powerConnector.powerOutPoint = new Point(43,15);
 		
 	}
 	
@@ -68,7 +69,8 @@ public class MotorPart extends Part {
 		super.update();
 			
 		if (channel >0 && DigitalModule.PWMChannels[channel-1]>=4) {
-			speed = ((DigitalModule.PWMChannels[channel-1]-128d)/125d)*maxSpeed*powered;
+			//System.out.println(powerConnector.powered);
+			speed = ((DigitalModule.PWMChannels[channel-1]-128d)/125d)*maxSpeed*powerConnector.powered;
 		}
 		else
 			speed = 0.0;
@@ -94,7 +96,7 @@ public class MotorPart extends Part {
 			lastFrame = System.currentTimeMillis();
 			rot+=((double)dif)/1000d * speed * 180d;
 			g.setColor(Color.red);
-			g.drawLine(x+75, y+25, x+powerOutPoint.x, y+powerOutPoint.y);
+			g.drawLine(x+75, y+25, x+powerConnector.powerOutPoint.x, y+powerConnector.powerOutPoint.y);
 			g.setColor(Color.black);
 			i = rotate(ImageIO.read(ClassLoader.getSystemResource("res/wheel.png")),Math.toRadians(rot));
 			g.drawImage(i, x+50, y, new Color(1,1,1,0), RobotEmulator.window);
@@ -114,7 +116,7 @@ public class MotorPart extends Part {
 			else if (speed==0)
 				g.setColor(Color.yellow);
 		}
-		if (powered!=0)
+		if (powerConnector.powered!=0)
 			g.fillOval(x+22, y+33, 6, 6);
 		g.setColor(Color.black);
 		
@@ -122,20 +124,9 @@ public class MotorPart extends Part {
 			g.drawLine((channel>9?20:10), 11*(channel+1)-5, x+pwmPoint.x, y+pwmPoint.y);
 		}
 		
-		if (connecting) {
-			Point p = RobotEmulator.window.draw.getMousePosition();
-			if (p!=null) {
-				g.setColor(Color.red);
-				g.drawLine(p.x,p.y, x+powerInPoint.x, y+powerInPoint.y);
-				g.setColor(Color.black);
-			}
-		}
-		else if (parent!=null) {
-			g.setColor(Color.red);
-			g.drawLine(parent.x+parent.powerOutPoint.x, parent.y+parent.powerOutPoint.y, x+powerInPoint.x, y+powerInPoint.y);
-			g.setColor(Color.black);
-		}
+		
 		g.drawString("Speed: "+speed+" rps", x, y+height+11);
+		super.paint(g);
 	}
 	
 	public static BufferedImage rotate(BufferedImage image, double angle) {
@@ -158,11 +149,7 @@ public class MotorPart extends Part {
 	public void updateProperties() {
 		super.updateProperties();
 		channel = ((JComboBox)props[0]).getSelectedIndex();
-		try {
-			maxSpeed = Double.valueOf(((JSpinner)props[1]).getValue().toString());
-		} catch (Exception e) {
-			System.out.println("t");
-		}
+		maxSpeed = Double.valueOf(((JSpinner)props[1]).getValue().toString());
 	}
 	
 	@Override
@@ -193,6 +180,15 @@ public class MotorPart extends Part {
 	public int outPuttingPower(Part p) {
 		return 0;
 	}
-
+	
+	@Override
+	public PowerConnector getPowerConnector() {
+		return powerConnector;
+	}
+	
+	@Override
+	public PowerConnector getParentPowerConnector() {
+		return ((IPowerConnector)powerConnector.powerParent).getPowerConnector();
+	}
 
 }

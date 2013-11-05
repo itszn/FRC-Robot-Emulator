@@ -36,8 +36,6 @@ public class LimitSwitchPart extends Part{
 		JCheckBox on = new JCheckBox("Pressed");
 		on.setSelected(false);
 		props[1] = on;
-		maxChildren = 0;
-		usePower = false;
 		pwmPoint = new Point(10,16);
 	}
 	
@@ -89,8 +87,5 @@ public class LimitSwitchPart extends Part{
 		super.getProperties(p);
 	}
 
-	@Override
-	public int outPuttingPower(Part p) {
-		return 0;
-	}
+	
 }

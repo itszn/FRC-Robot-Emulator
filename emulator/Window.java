@@ -107,7 +107,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 				BoxLayout layout = new BoxLayout(n, BoxLayout.Y_AXIS);
 				
 				n.setLayout(layout);
-				String[] types = {"Motor","Relay","Light","Limit Switch"};
+				String[] types = {"Motor","Relay","Light","Limit Switch","Potentiometer"};
 				partTypes = new JComboBox<String>(types);
 					partTypes.setSelectedIndex(0);
 					partTypes.addActionListener(this);
@@ -167,8 +167,10 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			super.paint(g);
 			g.setColor(Color.black);
 			this.setBackground(Color.white);
-			for(Part p: RobotEmulator.parts)
+			for(Part p: RobotEmulator.parts){
 				p.paint(g);
+				g.setColor(Color.black);
+			}
 			g.drawString("PWM", 1, 11);
 			for (int i=1; i<=DigitalModule.kPwmChannels;i++)
 				g.drawString(String.valueOf(i), 1, 11+11*i);
@@ -236,22 +238,43 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			}
 		}
 		else if (partConnecting!=null && evn.getButton()==1) {
-			boolean flag = true;
-			for (Part p: RobotEmulator.parts) {
-				if (p.bound.contains(evn.getPoint())) {
-					if (p.children.size()<p.maxChildren&&p.usePower) {
-						partConnecting.setConnectParent(p);
-						p.children.add(partConnecting);
-						flag = false;
-						break;
+			if (partConnecting instanceof IPowerConnector && ((IPowerConnector)partConnecting).getPowerConnector().powerConnecting) {
+				boolean flag = true;
+				for (Part p: RobotEmulator.parts) {
+					if (p.bound.contains(evn.getPoint())) {
+						if (p instanceof IPowerConnector) {
+							if (((IPowerConnector)p).getPowerConnector().powerChildren.size()<((IPowerConnector)p).getPowerConnector().maxPowerChildren&&((IPowerConnector)p).getPowerConnector().usePower) {
+								((IPowerConnector)partConnecting).getPowerConnector().setPowerConnectParent(p);
+								((IPowerConnector)p).getPowerConnector().powerChildren.add(partConnecting);
+								flag = false;
+								break;
+							}
+						}
 					}
 				}
+				if (flag) {
+					((IPowerConnector)partConnecting).getPowerConnector().setPowerConnectParent(null);
+				}
+				Window.changes = true;
+				partConnecting = null;
 			}
-			if (flag) {
-				partConnecting.setConnectParent(null);
+			else if (partConnecting instanceof IMotorConnector && ((IMotorConnector)partConnecting).getMotorConnector().motorConnecting) {
+				boolean flag = true;
+				for (Part p: RobotEmulator.parts) {
+					if (p.bound.contains(evn.getPoint())) {
+						if (p instanceof MotorPart) {
+							((IMotorConnector)partConnecting).getMotorConnector().setMotorConnectParent((MotorPart)p);
+							flag = false;
+							break;
+						}
+					}
+				}
+				if (flag) {
+					((IMotorConnector)partConnecting).getMotorConnector().setMotorConnectParent(null);
+				}
+				Window.changes = true;
+				partConnecting = null;
 			}
-			Window.changes = true;
-			partConnecting = null;
 		}
 	}
 
@@ -333,6 +356,9 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			if (partTypes.getSelectedIndex()==3) {
 				new LimitSwitchPart(addX,addX);
 			}
+			if (partTypes.getSelectedIndex()==4) {
+				new PotentiometerPart(addX,addX);
+			}
 			changes = true;
 			addX+=10;
 			if (addX>100)
@@ -353,7 +379,8 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			System.out.println("Switched to teleop, Disabled");
 		}
 		else if (evn.getActionCommand().equals("autoMode")) {
-			DriverStation.instance.InOperatorControl(true);
+			DriverStation.instance.InOperatorControl(false);
+			//TODO Fix switch to auto
 			DriverStation.instance.InDisabled(true);
 			disable.setSelected(true);
 			System.out.println("Switched to auto, Disabled");

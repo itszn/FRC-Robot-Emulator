@@ -18,6 +18,7 @@ public class RobotEmulator implements Runnable{
 	public static RobotBase robot;
 	public static RobotEmulator instance;
 	public static ArrayList<Part> parts = new ArrayList<Part>();
+	public static int maxDec = 2;
 	
 	public static boolean autoUpdate = true;
 	
@@ -44,6 +45,7 @@ public class RobotEmulator implements Runnable{
 		ConfigManager.loadConfig();
 		instance = new RobotEmulator();
 		//window = new Window();
+		//new PotentiometerPart(25,25,100,50).channel=1;
 		new MotorPart(25,25,100,50).channel=1;
 		try {
 			robot.startApp();
@@ -79,9 +81,18 @@ public class RobotEmulator implements Runnable{
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
-			for (Part p: parts)
-				p.update();
-			window.repaint();
+			for (Part p: parts){
+				try {
+					p.update();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			try {
+				window.repaint();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			String in = "";
 			try {
 				if (br.ready()) {

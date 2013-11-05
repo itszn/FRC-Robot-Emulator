@@ -71,21 +71,24 @@ public class SaveManager{
 	public boolean saveToFile(File f) {
 		try {
 			PrintWriter pw = new PrintWriter(new FileOutputStream(f));
+			pw.println("<version "+Updater.version+">");
 			for (Part p: RobotEmulator.parts) {
 				pw.println("<newPart>");
 				UUID id =p.uuid;
 				pw.println(id.getMostSignificantBits());
 				pw.println(id.getLeastSignificantBits());
 				pw.println(p.getClass());
-				if (p.parent==null){
-					pw.println(false);
+				if (p instanceof IPowerConnector) {
+					if (((IPowerConnector)p).getPowerConnector().powerParent==null){
+						pw.println(false);
+					}
+					else {
+						pw.println(true);
+						pw.println(((IPowerConnector)p).getPowerConnector().powerParent.uuid.getMostSignificantBits());
+						pw.println(((IPowerConnector)p).getPowerConnector().powerParent.uuid.getLeastSignificantBits());
+					}
+					pw.println(((IPowerConnector)p).getPowerConnector().autoPower);
 				}
-				else {
-					pw.println(true);
-					pw.println(p.parent.uuid.getMostSignificantBits());
-					pw.println(p.parent.uuid.getLeastSignificantBits());
-				}
-				pw.println(p.autoPower);
 				pw.println(p.x+"\n"+p.y+"\n"+p.width+"\n"+p.height);
 				
 				if (p instanceof MotorPart) {
@@ -147,12 +150,16 @@ public class SaveManager{
 					UUID id = new UUID(id1,id2);
 					Class c = Class.forName(br.readLine().split(" ")[1]);
 					UUID parentId = null;
-					if (Boolean.valueOf(br.readLine())){
-						id1 = Long.valueOf(br.readLine());
-						id2 = Long.valueOf(br.readLine());
-						parentId = new UUID(id1,id2);
+					boolean autoPower = false;
+					System.out.println(IPowerConnector.class.isAssignableFrom(c));
+					if ((IPowerConnector.class.isAssignableFrom(c))) {
+						if(Boolean.valueOf(br.readLine())){
+							id1 = Long.valueOf(br.readLine());
+							id2 = Long.valueOf(br.readLine());
+							parentId = new UUID(id1,id2);
+						}
+						autoPower = Boolean.valueOf(br.readLine());
 					}
-					boolean autoPower = Boolean.valueOf(br.readLine());
 					int x = Integer.valueOf(br.readLine());
 					int y = Integer.valueOf(br.readLine());
 					int width = Integer.valueOf(br.readLine());
@@ -177,28 +184,36 @@ public class SaveManager{
 					}
 					p.uuid = id;
 					p.tempParentUUID = parentId;
-					p.autoPower = autoPower;
+					if (p instanceof IPowerConnector)
+					((IPowerConnector)p).getPowerConnector().autoPower = autoPower;
 					tempParts.add(p);
 				}
 			}
 			br.close();
 			for (Part p: tempParts) {
-				if (p.tempParentUUID==null)
-					p.parent=null;
-				else {
-					Part parent = null;
-					for (Part pa: tempParts) {
-						if (pa.uuid.equals(p.tempParentUUID)) {
-							parent = pa;
-							pa.children.add(p);
+				Part cparent = null;
+				if (p instanceof IPowerConnector) {
+					if (p.tempParentUUID==null)
+						cparent=null;
+					else {
+						Part parent = null;
+						for (Part pa: tempParts) {
+							if (pa.uuid.equals(p.tempParentUUID)) {
+								parent = pa;
+								if (pa instanceof IPowerConnector)
+									((IPowerConnector)pa).getPowerConnector().powerChildren.add(p);
+							}
+						}
+						if (parent==null){
+							System.err.println("Warning: Could not find specified parent "+p.tempParentUUID+" for part "+p);
+							cparent=null;
+						}
+						else {
+							cparent=parent;
 						}
 					}
-					if (parent==null){
-						System.err.println("Warning: Could not find specified parent "+p.tempParentUUID+" for part "+p);
-						p.parent=null;
-					}
-					else {
-						p.parent=parent;
+					if (p instanceof IPowerConnector) {
+						((IPowerConnector)p).getPowerConnector().powerParent = cparent;
 					}
 				}
 			}

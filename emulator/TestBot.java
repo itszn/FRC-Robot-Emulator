@@ -37,6 +37,7 @@ public class TestBot extends IterativeRobot{
 	
 	public void teleopInit() {
 		super.teleopInit();
+		System.out.println("Trying to run");
 		motorL.set(0);
 		motorR.set(0);
 		relay.set(Value.kReverse);

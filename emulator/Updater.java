@@ -34,11 +34,13 @@ public class Updater {
 		String vers = "https://dl.dropboxusercontent.com/u/54680365/frcEmulator/versions.list";
 		String dl = "https://dl.dropboxusercontent.com/u/54680365/frcEmulator/frcEmulator.jar";
 		boolean doUpdate = false;
+		boolean canConnect = false;
 		String totalPatch = "";
 		double newVers = 0;
 		try {
 			BufferedReader vIn = new BufferedReader(new InputStreamReader( new URL(vers).openStream()));
 			String l = vIn.readLine();
+			canConnect = true;
 			while(l!=null) {
 				if(l.startsWith("version ")) {
 					double tempVer = Double.valueOf(l.substring(8));
@@ -62,7 +64,8 @@ public class Updater {
 			vIn.close();
 		} catch (Exception e) {
 			System.err.println("Could not connect to update server.");
-			JOptionPane.showMessageDialog(null, "Could not connect to the update server.\nPlease check your connection settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
+			if (!isAuto)
+				JOptionPane.showMessageDialog(null, "Could not connect to the update server.\nPlease check your connection settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		if (doUpdate) {
@@ -193,6 +196,9 @@ public class Updater {
 				
 			}
 		}
+		} else if (canConnect && !isAuto) {
+			JOptionPane.showMessageDialog(null, "There is not update avalible", "Up To Date", JOptionPane.INFORMATION_MESSAGE);
+			
 		}
 		
 	}

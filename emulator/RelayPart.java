@@ -16,9 +16,10 @@ import javax.swing.JPanel;
 
 import edu.wpi.first.wpilibj.DigitalModule;
 
-public class RelayPart extends Part{
+public class RelayPart extends Part implements IPowerConnector{
 	int channel=0;
 	int powerOut=0;
+	PowerConnector powerConnector = new PowerConnector(this);
 	
 	public RelayPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
@@ -31,10 +32,10 @@ public class RelayPart extends Part{
 		JComboBox<String> channel = new JComboBox<String>(items);
 		channel.setSelectedIndex(0);
 		props[0]=channel;
-		maxChildren = 1;
-		powerInPoint = new Point(0,9);
+		powerConnector.maxPowerChildren = 1;
+		powerConnector.powerInPoint = new Point(0,9);
 		pwmPoint = new Point(10,16);
-		powerOutPoint = new Point(75,9);
+		powerConnector.powerOutPoint = new Point(75,9);
 	}
 	
 	public RelayPart(int x, int y) {
@@ -47,7 +48,7 @@ public class RelayPart extends Part{
 		if (channel>0) {
 			DigitalModule.RelayInfo rel = DigitalModule.relayChannels[channel-1];
 			int newPow = (rel.fwd?1:(rel.rev?-1:0));
-			powerOut = powered*newPow;
+			powerOut = powerConnector.powered*newPow;
 		}
 		else
 			powerOut = 0;
@@ -72,27 +73,14 @@ public class RelayPart extends Part{
 			else if (powerOut==0)
 				g.setColor(Color.yellow);
 		}
-		if (powered!=0)
+		if (powerConnector.powered!=0)
 			g.fillOval(x+53, y+38, 6, 6);
 		g.setColor(Color.black);
 		if (channel != 0) {
 			g.drawLine((channel>9?20:10), 121+11*(channel+1)-5, x+pwmPoint.x, y+pwmPoint.y);
 		}
-		if (connecting) {
-			Point p = RobotEmulator.window.draw.getMousePosition();
-			if (p!=null) {
-				g.setColor(Color.red);
-				g.drawLine(p.x,p.y, x+powerInPoint.x, y+powerInPoint.y);
-				g.setColor(Color.black);
-			}
-		}
-		else if (parent!=null) {
-			g.setColor(Color.red);
-			g.drawLine(parent.x+parent.powerOutPoint.x, parent.y+parent.powerOutPoint.y, x+powerInPoint.x, y+powerInPoint.y);
-			g.setColor(Color.black);
-			
-		}
 		g.drawString((powerOut==1?"Forward":(powerOut==0?"Off":"Reverse")), x, y+height+11);
+		super.paint(g);
 	}
 
 	@Override
@@ -116,6 +104,16 @@ public class RelayPart extends Part{
 	@Override
 	public int outPuttingPower(Part p) {
 		return powerOut;
+	}
+	
+	@Override
+	public PowerConnector getPowerConnector() {
+		return powerConnector;
+	}
+	
+	@Override
+	public PowerConnector getParentPowerConnector() {
+		return ((IPowerConnector)powerConnector.powerParent).getPowerConnector();
 	}
 	
 
