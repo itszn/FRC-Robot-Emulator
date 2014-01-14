@@ -7,7 +7,8 @@
 
 package edu.wpi.first.wpilibj;
 
-import edu.wpi.first.wpilibj.communication.UsageReporting;
+import javax.xml.transform.Source;
+
 import edu.wpi.first.wpilibj.fpga.tCounter;
 import edu.wpi.first.wpilibj.livewindow.LiveWindowSendable;
 import edu.wpi.first.wpilibj.tables.ITable;
@@ -60,10 +61,13 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
     private DigitalSource m_downSource;	///< What makes the counter count down.
     private boolean m_allocatedUpSource;
     private boolean m_allocatedDownSource;
-    private tCounter m_counter;				///< The FPGA counter object.
+    //private tCounter m_counter;				///< The FPGA counter object.
     private int m_index;					///< The index of this counter.
     private static Resource counters = new Resource(tCounter.kNumSystems);
-
+    private int count;
+    private boolean running = true;
+    private int countDelta = 0;
+    
     private void initCounter(final Mode mode) {
         m_allocatedUpSource = false;
         m_allocatedDownSource = false;
@@ -74,13 +78,13 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
             throw new AllocationException("No counters left to be allocated");
         }
 
-        m_counter = new tCounter(m_index);
-        m_counter.writeConfig_Mode(mode.value);
+        
         m_upSource = null;
         m_downSource = null;
-        m_counter.writeTimerConfig_AverageSize(1);
+        count = 0;
+        //m_counter.writeTimerConfig_AverageSize(1);
 
-       UsageReporting.report(UsageReporting.kResourceType_Counter, m_index, mode.value);
+      // UsageReporting.report(UsageReporting.kResourceType_Counter, m_index, mode.value);
     }
 
     /**
@@ -175,12 +179,13 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
 
         clearUpSource();
         clearDownSource();
-        m_counter.Release();
+        //m_counter.Release();
 
         m_upSource = null;
         m_downSource = null;
-        m_counter = null;
+        //m_counter = null;
         counters.free(m_index);
+        count = 0;
     }
 
     /**
@@ -214,15 +219,15 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
             m_allocatedUpSource = false;
         }
         m_upSource = source;
-        m_counter.writeConfig_UpSource_Module(source.getModuleForRouting());
-        m_counter.writeConfig_UpSource_Channel(source.getChannelForRouting());
-        m_counter.writeConfig_UpSource_AnalogTrigger(source.getAnalogTriggerForRouting());
+        //m_counter.writeConfig_UpSource_Module(source.getModuleForRouting());
+        //m_counter.writeConfig_UpSource_Channel(source.getChannelForRouting());
+        //m_counter.writeConfig_UpSource_AnalogTrigger(source.getAnalogTriggerForRouting());
 
-        if (m_counter.readConfig_Mode() == Mode.kTwoPulse.value ||
-                m_counter.readConfig_Mode() == Mode.kExternalDirection.value) {
-            setUpSourceEdge(true, false);
-        }
-        m_counter.strobeReset();
+        //if (m_counter.readConfig_Mode() == Mode.kTwoPulse.value ||
+        //        m_counter.readConfig_Mode() == Mode.kExternalDirection.value) {
+        //    setUpSourceEdge(true, false);
+        //}
+        //m_counter.strobeReset();
     }
 
     /**
@@ -244,8 +249,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
     public void setUpSourceEdge(boolean risingEdge, boolean fallingEdge) {
         if (m_upSource == null) throw new RuntimeException(
                 "Up Source must be set before setting the edge!");
-        m_counter.writeConfig_UpRisingEdge(risingEdge);
-        m_counter.writeConfig_UpFallingEdge(fallingEdge);
+        //m_counter.writeConfig_UpRisingEdge(risingEdge);
+        //m_counter.writeConfig_UpFallingEdge(fallingEdge);
     }
 
     /**
@@ -258,14 +263,15 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
         }
         m_upSource = null;
 
-        boolean state = m_counter.readConfig_Enable();
-        m_counter.writeConfig_Enable(false);
-        m_counter.writeConfig_UpFallingEdge(false);
-        m_counter.writeConfig_UpRisingEdge(false);
+        //boolean state = m_counter.readConfig_Enable();
+        //m_counter.writeConfig_Enable(false);
+        //m_counter.writeConfig_UpFallingEdge(false);
+        //m_counter.writeConfig_UpRisingEdge(false);
         // Index 0 of digital is always 0.
-        m_counter.writeConfig_UpSource_Channel(0);
-        m_counter.writeConfig_UpSource_AnalogTrigger(false);
-        m_counter.writeConfig_Enable(state);
+        //m_counter.writeConfig_UpSource_Channel(0);
+        //m_counter.writeConfig_UpSource_AnalogTrigger(false);
+        //m_counter.writeConfig_Enable(state);
+        count = 0;
     }
 
     /**
@@ -298,18 +304,18 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
             m_downSource.free();
             m_allocatedDownSource = false;
         }
-        int mode = m_counter.readConfig_Mode();
-        if(mode != Mode.kTwoPulse_val && mode != Mode.kExternalDirection_val) {
-            throw new RuntimeException(
-                    "Down Source only supported in TwoPulse and ExternalDirection modes!");
-        }
+        //int mode = m_counter.readConfig_Mode();
+        //if(mode != Mode.kTwoPulse_val && mode != Mode.kExternalDirection_val) {
+        //    throw new RuntimeException(
+        //            "Down Source only supported in TwoPulse and ExternalDirection modes!");
+        //}
         m_downSource = source;
-        m_counter.writeConfig_DownSource_Module(source.getModuleForRouting());
-        m_counter.writeConfig_DownSource_Channel(source.getChannelForRouting());
-        m_counter.writeConfig_DownSource_AnalogTrigger(source.getAnalogTriggerForRouting());
+        //m_counter.writeConfig_DownSource_Module(source.getModuleForRouting());
+        //m_counter.writeConfig_DownSource_Channel(source.getChannelForRouting());
+        //m_counter.writeConfig_DownSource_AnalogTrigger(source.getAnalogTriggerForRouting());
 
         setDownSourceEdge(true, false);
-        m_counter.strobeReset();
+        //m_counter.strobeReset();
     }
 
     /**
@@ -331,8 +337,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
     public void setDownSourceEdge(boolean risingEdge, boolean fallingEdge) {
         if (m_downSource == null) throw new RuntimeException(
                 " Down Source must be set before setting the edge!");
-        m_counter.writeConfig_DownRisingEdge(risingEdge);
-        m_counter.writeConfig_DownFallingEdge(fallingEdge);
+        //m_counter.writeConfig_DownRisingEdge(risingEdge);
+        //m_counter.writeConfig_DownFallingEdge(fallingEdge);
     }
 
     /**
@@ -345,14 +351,14 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
         }
         m_downSource = null;
 
-        boolean state = m_counter.readConfig_Enable();
-        m_counter.writeConfig_Enable(false);
-        m_counter.writeConfig_DownFallingEdge(false);
-        m_counter.writeConfig_DownRisingEdge(false);
+        //boolean state = m_counter.readConfig_Enable();
+        //m_counter.writeConfig_Enable(false);
+        //m_counter.writeConfig_DownFallingEdge(false);
+        //m_counter.writeConfig_DownRisingEdge(false);
         // Index 0 of digital is always 0.
-        m_counter.writeConfig_DownSource_Channel(0);
-        m_counter.writeConfig_DownSource_AnalogTrigger(false);
-        m_counter.writeConfig_Enable(state);
+        //m_counter.writeConfig_DownSource_Channel(0);
+        //m_counter.writeConfig_DownSource_AnalogTrigger(false);
+        //m_counter.writeConfig_Enable(state);
     }
 
     /**
@@ -360,7 +366,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * Up and down counts are sourced independently from two inputs.
      */
     public void setUpDownCounterMode() {
-        m_counter.writeConfig_Mode(Mode.kTwoPulse.value);
+        //m_counter.writeConfig_Mode(Mode.kTwoPulse.value);
     }
 
     /**
@@ -369,7 +375,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * The Down counter input represents the direction to count.
      */
     public void setExternalDirectionMode() {
-        m_counter.writeConfig_Mode(Mode.kExternalDirection.value);
+        //m_counter.writeConfig_Mode(Mode.kExternalDirection.value);
     }
 
     /**
@@ -378,8 +384,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * @param highSemiPeriod true to count up on both rising and falling
      */
     public void setSemiPeriodMode(boolean highSemiPeriod) {
-        m_counter.writeConfig_Mode(Mode.kSemiperiod.value);
-        m_counter.writeConfig_UpRisingEdge(highSemiPeriod);
+        //m_counter.writeConfig_Mode(Mode.kSemiperiod.value);
+        //m_counter.writeConfig_UpRisingEdge(highSemiPeriod);
         setUpdateWhenEmpty(false);
     }
 
@@ -389,8 +395,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * @param threshold The pulse length beyond which the counter counts the opposite direction.  Units are seconds.
      */
     public void setPulseLengthMode(double threshold) {
-        m_counter.writeConfig_Mode(Mode.kPulseLength.value);
-        m_counter.writeConfig_PulseLengthThreshold((short) ((threshold * 1.0e6) * kSystemClockTicksPerMicrosecond));
+       // m_counter.writeConfig_Mode(Mode.kPulseLength.value);
+        //m_counter.writeConfig_PulseLengthThreshold((short) ((threshold * 1.0e6) * kSystemClockTicksPerMicrosecond));
     }
 
     /**
@@ -399,7 +405,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * input channel. The counter value is not reset on starting, and still has the previous value.
      */
     public void start() {
-        m_counter.writeConfig_Enable(true);
+        //m_counter.writeConfig_Enable(true);
+    	running = true;
     }
 
     /**
@@ -408,7 +415,10 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * time it is read, it might have a different value.
      */
     public int get() {
-        return m_counter.readOutput_Value();
+    	count+=DigitalModule.DIOChannels[m_upSource.getChannelForRouting()-1];
+    	DigitalModule.DIOChannels[m_upSource.getChannelForRouting()-1] = 0;
+    	
+        return count;//m_counter.readOutput_Value();
     }
 
     /**
@@ -417,7 +427,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * the current value to zero.
      */
     public void reset() {
-        m_counter.strobeReset();
+        //m_counter.strobeReset();
+    	count = 0;
     }
 
     /**
@@ -425,7 +436,8 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * Stops the counting but doesn't effect the current value.
      */
     public void stop() {
-        m_counter.writeConfig_Enable(false);
+        //m_counter.writeConfig_Enable(false);
+    	running = false;
     }
 
     /**
@@ -436,7 +448,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * seconds.
      */
     public void setMaxPeriod(double maxPeriod) {
-        m_counter.writeTimerConfig_StallPeriod((int) (maxPeriod * 1.0e6));
+        //m_counter.writeTimerConfig_StallPeriod((int) (maxPeriod * 1.0e6));
     }
 
     /**
@@ -453,7 +465,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * @param enabled true to continue updating
      */
     public void setUpdateWhenEmpty(boolean enabled) {
-        m_counter.writeTimerConfig_UpdateWhenEmpty(enabled);
+        //m_counter.writeTimerConfig_UpdateWhenEmpty(enabled);
     }
 
     /**
@@ -465,7 +477,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * SetMaxPeriod.
      */
     public boolean getStopped() {
-        return m_counter.readTimerOutput_Stalled();
+        return false;//m_counter.readTimerOutput_Stalled();
     }
 
     /**
@@ -473,7 +485,7 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * @return The last direction the counter value changed.
      */
     public boolean getDirection() {
-        boolean value = m_counter.readOutput_Direction();
+        boolean value = countDelta>=0;//m_counter.readOutput_Direction();
         return value;
     }
 
@@ -484,13 +496,13 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * @param reverseDirection true if the value counted should be negated.
      */
     public void setReverseDirection(boolean reverseDirection) {
-        if (m_counter.readConfig_Mode() == Mode.kExternalDirection.value) {
-            if (reverseDirection) {
-                setDownSourceEdge(true, true);
-            } else {
-                setDownSourceEdge(false, true);
-            }
-        }
+        //if (m_counter.readConfig_Mode() == Mode.kExternalDirection.value) {
+        //    if (reverseDirection) {
+        //        setDownSourceEdge(true, true);
+        //    } else {
+        //        setDownSourceEdge(false, true);
+        //    }
+        //}
     }
 
     /*
@@ -499,14 +511,15 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * to determine shaft speed.
      * @returns The period of the last two pulses in units of seconds.
      */
+    @Deprecated
     public double getPeriod() {
         double period;
-        if (m_counter.readTimerOutput_Stalled()) {
-            return Double.POSITIVE_INFINITY;
-        } else {
-            period = (double) m_counter.readTimerOutput_Period() / (double) m_counter.readTimerOutput_Count();
-        }
-        return period / 1.0e6;
+        //if (m_counter.readTimerOutput_Stalled()) {
+        //    return Double.POSITIVE_INFINITY;
+        //} else {
+        //    period = (double) m_counter.readTimerOutput_Period() / (double) m_counter.readTimerOutput_Count();
+        //}
+        return 0;//period / 1.0e6;
     }
 	
 	
@@ -537,9 +550,9 @@ public class Counter extends SensorBase implements CounterBase, LiveWindowSendab
      * {@inheritDoc}
      */
     public void updateTable() {
-        if (m_table != null) {
-            m_table.putNumber("Value", m_counter.readOutput_Value());
-        }
+        //if (m_table != null) {
+        //    m_table.putNumber("Value", m_counter.readOutput_Value());
+        //}
     }
     
     /**

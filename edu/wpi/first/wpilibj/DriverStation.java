@@ -172,7 +172,8 @@ public class DriverStation{
             DigitalModule.getInstance(1).setPWM(pwm_index, PWM.kPwmDisabled);
             DigitalModule.getInstance(1).setPWMPeriodScale(pwm_index, PWM.PeriodMultiplier.k4X_val); // Set all to 4x by default.
         }
-        
+        if (!entering)
+        	timeStamp = System.currentTimeMillis();
         for (int i=1; i<= DigitalModule.kRelayChannels; i++) {
         	 DigitalModule.getInstance(1).relayChannels[i-1] = new RelayInfo(false,false);
         }

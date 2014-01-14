@@ -16,9 +16,10 @@ import javax.swing.JSpinner;
 
 public class LightPart extends Part implements IPowerConnector{
 	boolean on = false;
-	PowerConnector powerConnector = new PowerConnector(this);
+	PowerConnector powerConnector;
 	public LightPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
+		powerConnector = new PowerConnector(this);
 		powerConnector.autoPower = false;
 		name="Light";
 		powerConnector.powerInPoint = new Point(26,71);

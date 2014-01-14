@@ -86,7 +86,7 @@ public class DigitalInput extends DigitalSource implements IInputOutput, LiveWin
     }
 
     public int getChannelForRouting() {
-        return DigitalModule.remapDigitalChannel(getChannel() - 1);
+        return getChannel();//DigitalModule.remapDigitalChannel(getChannel() - 1);
     }
 
     public int getModuleForRouting() {

@@ -41,6 +41,7 @@ public class AnalogModule extends Module {
     private long m_accumulatorOffset;
     private int m_numChannelsToActivate;
     private final Object syncRoot = new Object();
+    public static double[] AnalogChannels = new double[SensorBase.kAnalogChannels];
 
     /**
      * Get an instance of an Analog Module.
@@ -134,8 +135,8 @@ public class AnalogModule extends Module {
      * @return Active channels.
      */
     private int getNumActiveChannels() {
-        final int scanSize = m_module.readConfig_ScanSize();
-        return scanSize == 0 ? 8 : scanSize;
+        //final int scanSize = m_module.readConfig_ScanSize();
+        return 0;//scanSize == 0 ? 8 : scanSize;
     }
 
     /**
@@ -150,10 +151,10 @@ public class AnalogModule extends Module {
      * @return Value to write to the active channels field.
      */
     private int getNumChannelsToActivate() {
-        if (m_numChannelsToActivate == 0) {
-            return getNumActiveChannels();
-        }
-        return m_numChannelsToActivate;
+        //if (m_numChannelsToActivate == 0) {
+        //    return getNumActiveChannels();
+        //}
+        return 0;//m_numChannelsToActivate;
     }
 
     /**
@@ -165,7 +166,7 @@ public class AnalogModule extends Module {
      * @param channels Number of active channels.
      */
     private void setNumChannelsToActivate(final int channels) {
-        m_numChannelsToActivate = channels;
+        //m_numChannelsToActivate = channels;
     }
 
     /**
@@ -180,7 +181,7 @@ public class AnalogModule extends Module {
      *            Number of bits to average.
      */
     public void setAverageBits(final int channel, final int bits) {
-        m_module.writeAverageBits(channel - 1, bits);
+        //m_module.writeAverageBits(channel - 1, bits);
     }
 
     /**
@@ -194,7 +195,7 @@ public class AnalogModule extends Module {
      * @return Bits to average.
      */
     public int getAverageBits(final int channel) {
-        return m_module.readAverageBits(channel - 1);
+        return 0;//m_module.readAverageBits(channel - 1);
     }
 
     /**
@@ -208,7 +209,7 @@ public class AnalogModule extends Module {
      * @param bits Number of bits to oversample.
      */
     public void setOversampleBits(final int channel, final int bits) {
-        m_module.writeOversampleBits(channel - 1, bits);
+        //m_module.writeOversampleBits(channel - 1, bits);
     }
 
     /**
@@ -235,18 +236,18 @@ public class AnalogModule extends Module {
      */
     public int getValue(final int channel) {
         int value;
-        SensorBase.checkAnalogChannel(channel);
+        //SensorBase.checkAnalogChannel(channel);
+        
+//        synchronized (syncRoot) {
+//            tAI.writeReadSelect_Channel(channel - 1);
+//            tAI.writeReadSelect_Module(m_moduleNumber - 1);
+//            tAI.writeReadSelect_Averaged(false);
+//
+//            tAI.strobeLatchOutput();
+//            value = tAI.readOutput();
+//        }
 
-        synchronized (syncRoot) {
-            tAI.writeReadSelect_Channel(channel - 1);
-            tAI.writeReadSelect_Module(m_moduleNumber - 1);
-            tAI.writeReadSelect_Averaged(false);
-
-            tAI.strobeLatchOutput();
-            value = tAI.readOutput();
-        }
-
-        return (short) value;
+        return (short) AnalogChannels[channel-1];
     }
 
     /**
@@ -255,6 +256,7 @@ public class AnalogModule extends Module {
      * @param channel Channel number to read.
      * @return The averaged and oversampled raw value.
      */
+    @Deprecated
     public int getAverageValue(final int channel) {
         int value;
         SensorBase.checkAnalogChannel(channel);
@@ -287,11 +289,11 @@ public class AnalogModule extends Module {
      */
     public int voltsToValue(final int channel, final double voltage) {
         // wpi_assert(voltage >= -10.0 && voltage <= 10.0);
-        final long LSBWeight = getLSBWeight(channel);
-        final int offset = getOffset(channel);
-        final int value = (int) ((voltage + offset * 1.0e-9) / (LSBWeight * 1.0e-9));
+        //final long LSBWeight = getLSBWeight(channel);
+        //final int offset = getOffset(channel);
+        //final int value = (int) ((voltage + offset * 1.0e-9) / (LSBWeight * 1.0e-9));
 
-        return value;
+        return (int) voltage;
     }
 
     /**
@@ -303,12 +305,12 @@ public class AnalogModule extends Module {
      * @return The scaled voltage from the channel.
      */
     public double getVoltage(final int channel) {
-        final int value = getValue(channel);
-        final long LSBWeight = getLSBWeight(channel);
-        final int offset = getOffset(channel);
-        final double voltage = (LSBWeight * 1.0e-9 * value) - (offset * 1.0e-9);
+        //final int value = getValue(channel);
+        //final long LSBWeight = getLSBWeight(channel);
+        //final int offset = getOffset(channel);
+        //final double voltage = (LSBWeight * 1.0e-9 * value) - (offset * 1.0e-9);
 
-        return voltage;
+        return AnalogChannels[channel-1];
     }
 
     /**
@@ -319,6 +321,7 @@ public class AnalogModule extends Module {
      * @param channel The channel to read.
      * @return The scaled averaged and oversampled voltage from the channel.
      */
+    @Deprecated
     public double getAverageVoltage(final int channel) {
         final int value = getAverageValue(channel);
         final long LSBWeight = getLSBWeight(channel);

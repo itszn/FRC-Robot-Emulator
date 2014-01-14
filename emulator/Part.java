@@ -8,15 +8,12 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.awt.event.MouseEvent;
 import java.util.UUID;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public abstract class Part implements ActionListener/*, Serializable*/{
@@ -37,6 +34,7 @@ public abstract class Part implements ActionListener/*, Serializable*/{
 	public boolean exists = true;
 	public JComponent[] props;
 	public Rectangle bound;
+	public Rectangle interactBound;
 	//JComboBox<String> powerChoice;
 	protected int x=0, y=0, width=100, height=100;
 	//public Point powerInPoint = new Point(0,0);
@@ -50,18 +48,18 @@ public abstract class Part implements ActionListener/*, Serializable*/{
 		this.width = width;
 		this.height = height;
 		bound = new Rectangle(x,y,width,height);
+		interactBound = new Rectangle(x,y,width,height);
+		//TODO fix Sync
 		if (!RobotEmulator.parts.contains(this)) {
 			RobotEmulator.parts.add(this);
 		}
-		
-		
 	}
 	
 	public void update() {
-		if (this instanceof IPowerConnector) {
+		if (this instanceof IPowerConnector && ((IPowerConnector)this).getPowerConnector()!=null) {
 			((IPowerConnector)this).getPowerConnector().update();
 		}
-		if (this instanceof IMotorConnector) {
+		if (this instanceof IMotorConnector && ((IMotorConnector)this).getMotorConnector()!=null) {
 			((IMotorConnector)this).getMotorConnector().update();
 		}
 	}
@@ -156,10 +154,12 @@ public abstract class Part implements ActionListener/*, Serializable*/{
 	
 	public void setX(int x){
 		this.x = x;
+		interactBound.setLocation(x+interactBound.x-bound.x, y+interactBound.y-bound.y);
 		bound = new Rectangle(x,y,width,height);
 	}
 	public void setY(int y){
 		this.y = y;
+		interactBound.setLocation(x+interactBound.x-bound.x, y+interactBound.y-bound.y);
 		bound = new Rectangle(x,y,width,height);
 	}
 	public void setWidth(int width){
@@ -170,9 +170,14 @@ public abstract class Part implements ActionListener/*, Serializable*/{
 		this.height = height;
 		bound = new Rectangle(x,y,width,height);
 	}
-
 	
-	public String toString() {
+	public void interactMouseClicked(MouseEvent evn) {};
+	public void interactMousePressed(MouseEvent evn) {};
+	public void interactMouseReleased(MouseEvent evn) {};
+	public void interactMouseDragged(MouseEvent evn) {};
+	public void interactMoveMouse(MouseEvent evn) {};
+	
+ 	public String toString() {
 		return this.getClass()+" ("+this.x+","+this.y+") UUID: "+this.uuid;
 	}
 }

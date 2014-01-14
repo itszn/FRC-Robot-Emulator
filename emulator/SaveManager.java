@@ -89,6 +89,16 @@ public class SaveManager{
 					}
 					pw.println(((IPowerConnector)p).getPowerConnector().autoPower);
 				}
+				if (p instanceof IMotorConnector) {
+					if (((IMotorConnector)p).getMotorConnector().motorParent==null){
+						pw.println(false);
+					}
+					else {
+						pw.println(true);
+						pw.println(((IMotorConnector)p).getMotorConnector().motorParent.uuid.getMostSignificantBits());
+						pw.println(((IMotorConnector)p).getMotorConnector().motorParent.uuid.getLeastSignificantBits());
+					}
+				}
 				pw.println(p.x+"\n"+p.y+"\n"+p.width+"\n"+p.height);
 				
 				if (p instanceof MotorPart) {
@@ -101,6 +111,19 @@ public class SaveManager{
 				if (p instanceof LimitSwitchPart) {
 					pw.println(((LimitSwitchPart) p).channel);
 					pw.println(((LimitSwitchPart) p).activated);
+				}
+				if (p instanceof PotentiometerPart) {
+					pw.println(((PotentiometerPart) p).channel);
+					pw.println(((PotentiometerPart) p).currentPos);
+					pw.println(((PotentiometerPart) p).gearRatio);
+					pw.println(((PotentiometerPart) p).turns);
+				}
+				if (p instanceof TachometerPart) {
+					pw.println(((TachometerPart) p).channel);
+				}
+				if (p instanceof RangeFinderPart) {
+					pw.println(((RangeFinderPart) p).channel);
+					pw.println(((RangeFinderPart) p).distance);
 				}
 			}
 			pw.flush();
@@ -160,6 +183,13 @@ public class SaveManager{
 						}
 						autoPower = Boolean.valueOf(br.readLine());
 					}
+					if ((IMotorConnector.class.isAssignableFrom(c))) {
+						if (Boolean.valueOf(br.readLine())) {
+							id1 = Long.valueOf(br.readLine());
+							id2 = Long.valueOf(br.readLine());
+							parentId = new UUID(id1,id2);
+						}
+					}
 					int x = Integer.valueOf(br.readLine());
 					int y = Integer.valueOf(br.readLine());
 					int width = Integer.valueOf(br.readLine());
@@ -180,7 +210,22 @@ public class SaveManager{
 						p = new LimitSwitchPart(x,y/*,width,height*/);
 						((LimitSwitchPart)p).channel = Integer.valueOf(br.readLine());
 						((LimitSwitchPart)p).activated = Boolean.valueOf(br.readLine());
-						
+					}
+					if (c.equals(PotentiometerPart.class)) {
+						p = new PotentiometerPart(x,y);
+						((PotentiometerPart)p).channel = Integer.valueOf(br.readLine());
+						((PotentiometerPart)p).currentPos = Double.valueOf(br.readLine());
+						((PotentiometerPart)p).gearRatio = Double.valueOf(br.readLine());
+						((PotentiometerPart)p).turns = Integer.valueOf(br.readLine());
+					}
+					if (c.equals(TachometerPart.class)) {
+						p = new TachometerPart(x,y);
+						((TachometerPart)p).channel = Integer.valueOf(br.readLine());
+					}
+					if (c.equals(RangeFinderPart.class)) {
+						p = new RangeFinderPart(x,y);
+						((RangeFinderPart)p).channel = Integer.valueOf(br.readLine());
+						((RangeFinderPart)p).distance = Double.valueOf(br.readLine());
 					}
 					p.uuid = id;
 					p.tempParentUUID = parentId;
@@ -192,7 +237,7 @@ public class SaveManager{
 			br.close();
 			for (Part p: tempParts) {
 				Part cparent = null;
-				if (p instanceof IPowerConnector) {
+				if (p instanceof IPowerConnector || p instanceof IMotorConnector) {
 					if (p.tempParentUUID==null)
 						cparent=null;
 					else {
@@ -200,7 +245,7 @@ public class SaveManager{
 						for (Part pa: tempParts) {
 							if (pa.uuid.equals(p.tempParentUUID)) {
 								parent = pa;
-								if (pa instanceof IPowerConnector)
+								if (pa instanceof IPowerConnector && p instanceof IPowerConnector)
 									((IPowerConnector)pa).getPowerConnector().powerChildren.add(p);
 							}
 						}
@@ -214,6 +259,9 @@ public class SaveManager{
 					}
 					if (p instanceof IPowerConnector) {
 						((IPowerConnector)p).getPowerConnector().powerParent = cparent;
+					}
+					else if (p instanceof IMotorConnector && cparent instanceof MotorPart) {
+						((IMotorConnector) p).getMotorConnector().motorParent = (MotorPart)cparent;
 					}
 				}
 			}

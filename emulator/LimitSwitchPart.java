@@ -4,10 +4,9 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBox;
@@ -40,7 +39,7 @@ public class LimitSwitchPart extends Part{
 	}
 	
 	public LimitSwitchPart(int x, int y) {
-		this(x,y,75,25);
+		this(x,y,100,50);
 	}
 
 	@Override
@@ -54,7 +53,11 @@ public class LimitSwitchPart extends Part{
 	public void paint(Graphics g) {
 		g.drawRect(x, y, width, height);
 		try {
-			BufferedImage i = ImageIO.read(ClassLoader.getSystemResource("res/spike.png"));
+			BufferedImage i;
+			if (activated)
+				i = ImageIO.read(ClassLoader.getSystemResource("res/limitOn.png"));
+			else
+				i = ImageIO.read(ClassLoader.getSystemResource("res/limitOff.png"));
 			g.drawImage(i, x, y, new Color(1,1,1,0), RobotEmulator.window);
 		} catch(IOException e){};
 		if (channel != 0) {
@@ -85,6 +88,20 @@ public class LimitSwitchPart extends Part{
 			n.add(props[1]);
 		p.add(n);
 		super.getProperties(p);
+	}
+	
+	@Override
+	public void interactMousePressed(MouseEvent evn) {
+		if (evn.getID()==evn.MOUSE_PRESSED && evn.getButton()==1) {
+			activated = !activated;
+		}
+	}
+	
+	@Override
+	public void interactMouseReleased(MouseEvent evn) {
+		if (evn.getID()==evn.MOUSE_RELEASED && evn.getButton()==1 && !RobotEmulator.window.retainMode) {
+			activated = false;
+		}
 	}
 
 	

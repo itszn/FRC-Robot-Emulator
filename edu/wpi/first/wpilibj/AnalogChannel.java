@@ -127,7 +127,7 @@ public class AnalogChannel extends SensorBase implements PIDSource, LiveWindowSe
      * @return A scaled sample straight from this channel on the module.
      */
     public double getVoltage() {
-        return 12.00;//m_module.getVoltage(m_channel);
+        return AnalogModule.AnalogChannels[this.getChannel()-1];//m_module.getVoltage(m_channel);
     }
 
     /**

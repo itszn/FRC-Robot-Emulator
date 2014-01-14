@@ -10,6 +10,7 @@ package edu.wpi.first.wpilibj;
 import edu.wpi.first.wpilibj.communication.FRCControl;
 import edu.wpi.first.wpilibj.communication.UsageReporting;
 import edu.wpi.first.wpilibj.parsing.IInputOutput;
+import emulator.RobotEmulator;
 
 /**
  * Provide access to "LCD" on the Driver Station.
@@ -21,6 +22,8 @@ import edu.wpi.first.wpilibj.parsing.IInputOutput;
 public class DriverStationLCD extends SensorBase implements IInputOutput{
 
     private static DriverStationLCD m_instance;
+    
+    public static String[] output = new String[6];
     /**
      * Driver station timeout in milliseconds
      */
@@ -91,7 +94,7 @@ public class DriverStationLCD extends SensorBase implements IInputOutput{
      * Get an instance of the DriverStationLCD
      * @return an instance of the DriverStationLCD
      */
-    public static synchronized DriverStationLCD getInstance() {
+    public static DriverStationLCD getInstance() {
         if (m_instance == null)
             m_instance = new DriverStationLCD();
         return m_instance;
@@ -111,15 +114,32 @@ public class DriverStationLCD extends SensorBase implements IInputOutput{
 
         m_textBuffer[0] = (byte) (kFullDisplayTextCommand >> 8);
         m_textBuffer[1] = (byte) kFullDisplayTextCommand;
+        
+        String l = "";
+        for (int i=0; i<kLineLength; i++) {
+        	l+=" ";
+        }
+        
+        for (int i=0; i<6; i++) {
+        	output[i] = l;
+        }
 
-        UsageReporting.report(UsageReporting.kResourceType_DriverStationLCD, 0);
+        //UsageReporting.report(UsageReporting.kResourceType_DriverStationLCD, 0);
     }
 
     /**
      * Send the text data to the Driver Station.
      */
-    public synchronized void updateLCD() {
-        FRCControl.setUserDsLcdData(m_textBuffer, FRCControl.USER_DS_LCD_DATA_SIZE, kSyncTimeout_ms);
+    public void updateLCD() {
+        //FRCControl.setUserDsLcdData(m_textBuffer, FRCControl.USER_DS_LCD_DATA_SIZE, kSyncTimeout_ms);
+    	String s = "";
+    	for (int i=0; i<6; i++) {
+    		s+=output[i];
+    		if (i<5)
+    			s+="\n";
+    	}
+    	
+    	RobotEmulator.window.outputBox.setText(s);
     }
 
     /**
@@ -141,11 +161,15 @@ public class DriverStationLCD extends SensorBase implements IInputOutput{
 
         int length = text.length();
         int finalLength = (length < maxLength ? length : maxLength);
-        synchronized (this) {
-            for (int i = 0; i < finalLength; i++) {
-                m_textBuffer[i + start + line.value * kLineLength + 2] = (byte)text.charAt(i);
-            }
+        
+        if (text.length()+startingColumn-1>kLineLength) {
+        	text = text.substring(0,kLineLength-startingColumn+1);
         }
+        String s = output[line.value];
+        
+        s = s.substring(0, startingColumn).concat(text).concat(s.substring(startingColumn+text.length(),kLineLength));
+        
+        output[line.value] = s; 
     }
 
     /**
@@ -157,20 +181,26 @@ public class DriverStationLCD extends SensorBase implements IInputOutput{
      * @param startingColumn The column to start printing to.  This is a 1-based number.
      * @param text the text to print
      */
-    public void println(Line line, int startingColumn, StringBuffer text) {
+    public void println(Line line, int startingColumn, StringBuffer textI) {
         int start = startingColumn - 1;
         int maxLength = kLineLength - start;
 
         if (startingColumn < 1 || startingColumn > kLineLength) {
             throw new IndexOutOfBoundsException("Column must be between 1 and " + kLineLength + ", inclusive");
         }
-
+        String text = textI.toString();
         int length = text.length();
         int finalLength = (length < maxLength ? length : maxLength);
-        synchronized (this) {
-            for (int i = 0; i < finalLength; i++) {
-                m_textBuffer[i + start + line.value * kLineLength + 2] = (byte) text.charAt(i);
-            }
+        
+        
+        if (text.length()+startingColumn-1>kLineLength) {
+        	text = text.substring(0,kLineLength-startingColumn+1);
         }
+        String s = output[line.value];
+        
+        s.substring(0, startingColumn).concat(text).concat(s.substring(startingColumn-1+text.length(),kLineLength));
+        
+        output[line.value] = s; 
     }
+    
 }

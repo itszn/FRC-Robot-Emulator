@@ -13,6 +13,7 @@ public class ConfigManager {
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(new File("emulator.cfg")));
 			out.println("autoUpdate: "+RobotEmulator.autoUpdate);
+			out.println("defaultClass: "+RobotEmulator.defaultBot);
 			
 			out.close();
 			System.out.println("Saved config");
@@ -31,9 +32,9 @@ public class ConfigManager {
 			try {
 				while (l!=null && !l.equals("")) {
 					if (l.startsWith("autoUpdate: ")) {
-						
 						RobotEmulator.autoUpdate = Boolean.valueOf(l.split(" ")[1]);
-						
+					} else if(l.startsWith("defaultClass: ")) {
+						RobotEmulator.defaultBot = l.split(" ")[1];
 					}
 					l = in.readLine();
 				}

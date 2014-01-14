@@ -24,7 +24,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
 public class Updater {
-	protected static double version = 1.1;
+	protected static double version = 1.36;
 	//private static boolean eclipseFlag = false;
 	//private static boolean netbeansFlag = false;
 	//private static boolean updateFound = true;
@@ -44,6 +44,8 @@ public class Updater {
 			while(l!=null) {
 				if(l.startsWith("version ")) {
 					double tempVer = Double.valueOf(l.substring(8));
+					
+					
 					if (tempVer > version) {
 						if (tempVer>newVers)
 							newVers = tempVer;

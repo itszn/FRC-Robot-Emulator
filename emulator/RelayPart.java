@@ -19,10 +19,11 @@ import edu.wpi.first.wpilibj.DigitalModule;
 public class RelayPart extends Part implements IPowerConnector{
 	int channel=0;
 	int powerOut=0;
-	PowerConnector powerConnector = new PowerConnector(this);
+	PowerConnector powerConnector;
 	
 	public RelayPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
+		powerConnector = new PowerConnector(this);
 		name = "Relay";
 		props = new JComponent[1];
 		String[] items = new String[DigitalModule.kRelayChannels+1];

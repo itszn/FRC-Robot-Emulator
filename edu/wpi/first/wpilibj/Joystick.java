@@ -18,13 +18,16 @@ import edu.wpi.first.wpilibj.parsing.IInputOutput;
  */
 public class Joystick extends GenericHID implements IInputOutput{
 
-    static final byte kDefaultXAxis = 1;
-    static final byte kDefaultYAxis = 2;
-    static final byte kDefaultZAxis = 3;
-    static final byte kDefaultTwistAxis = 3;
-    static final byte kDefaultThrottleAxis = 4;
-    static final int kDefaultTriggerButton = 1;
-    static final int kDefaultTopButton = 2;
+    public static final byte kDefaultXAxis = 1;
+    public static final byte kDefaultYAxis = 2;
+    public static final byte kDefaultZAxis = 3;
+    public static final byte kDefaultTwistAxis = 3;
+    public static final byte kDefaultThrottleAxis = 4;
+    public static final int kDefaultTriggerButton = 1;
+    public static final int kDefaultTopButton = 2;
+    
+    public static double[][] axises = new double[8][10];
+    public static boolean[][] buttons = new boolean[8][20];
 
     /**
      * Represents an analog axis on a joystick.
@@ -205,7 +208,7 @@ public class Joystick extends GenericHID implements IInputOutput{
     public double getRawAxis(final int axis) {
     	//TODO JoySticks
     	
-        return 0;//m_ds.getStickAxis(m_port, axis);
+        return axises[m_port-1][axis];
     }
 
     /**
@@ -280,7 +283,8 @@ public class Joystick extends GenericHID implements IInputOutput{
      */
     public boolean getRawButton(final int button) {
     	//TODO Joystick buttons
-        return ((0x1 << (button - 1)))!=0;// & m_ds.getStickButtons(m_port)) != 0;
+    	//System.out.println(button);
+        return buttons[m_port-1][button-1];// ((0x1 << (button - 1)))!=0;// & m_ds.getStickButtons(m_port)) != 0;
     }
 
     /**

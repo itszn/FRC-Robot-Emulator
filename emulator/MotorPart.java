@@ -33,10 +33,11 @@ public class MotorPart extends Part implements IPowerConnector {
 	double speed = 0;
 	long lastFrame = -1;
 	double rot = 0;
-	PowerConnector powerConnector = new PowerConnector(this);
+	PowerConnector powerConnector;
 	
 	public MotorPart(int x, int y, int width, int height) {
 		super(x, y, width, height);
+		powerConnector = new PowerConnector(this);
 		name = "Motor";
 		props = new JComponent[3];
 		String[] items = new String[DigitalModule.kPwmChannels+1];

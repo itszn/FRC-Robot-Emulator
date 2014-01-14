@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.microedition.midlet.MIDletStateChangeException;
+import javax.swing.JOptionPane;
 
 import edu.wpi.first.wpilibj.DigitalModule;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -21,28 +22,46 @@ public class RobotEmulator implements Runnable{
 	public static int maxDec = 2;
 	
 	public static boolean autoUpdate = true;
+	public static String defaultBot = "";
+	
+	public static String curClassPath = "";
 	
 	public static void main (String[] args) {
-		if (args.length == 0) {
-			robot = new TestBot();
-			System.err.println("No class given, defaulting to TestBot");
-		} else {
-			try {
-				robot = (RobotBase) Class.forName(args[0]).newInstance();
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException("Robot class not found");
-			} catch (InstantiationException e) {
-				throw new RuntimeException("Invalid robot constructor. Must contain No parameters");
-			} catch (ClassCastException e) {
-				throw new RuntimeException("Robot Class not subclass of edu.wpi.first.wpilibj.RobotBase");
-			} catch (Exception e) {
-				e.printStackTrace();
+		ConfigManager.loadConfig();
+		while (robot == null) {
+			if (args.length == 0) {
+				//robot = new TestBot();
+				//System.err.println("No class given, defaulting to TestBot");
+				args = new String[1];
+				args[0] = JOptionPane.showInputDialog(null, "Please enter the classpath for the Main Robot Class:", defaultBot);
+				if (args[0]==null) {
+					System.exit(1);
+				}
+			} else {
+				try {
+					robot = (RobotBase) Class.forName(args[0]).newInstance();
+				} catch (ClassNotFoundException e) {
+					//throw new RuntimeException("Robot class not found");
+					JOptionPane.showMessageDialog(null, "Robot class provided could not be found.", "ClassPath Error", JOptionPane.ERROR_MESSAGE);
+				} catch (InstantiationException e) {
+					//throw new RuntimeException("Invalid robot constructor. Must contain No parameters");
+					JOptionPane.showMessageDialog(null, "Invalid robot constructor. Must contain no parameters.", "ClassPath Constructor Error", JOptionPane.ERROR_MESSAGE);
+				} catch (ClassCastException e) {
+					//throw new RuntimeException("Robot Class not subclass of edu.wpi.first.wpilibj.RobotBase");
+					JOptionPane.showMessageDialog(null, "Robot Class not subclass of edu.wpi.first.wpilibj.RobotBase.", "ClassPath Subclass Error", JOptionPane.ERROR_MESSAGE);
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "An error was encountered using that classpath", "ClassPath Error", JOptionPane.ERROR_MESSAGE);
+				}
+				if (robot == null) {
+					args = new String[0];
+				}
 			}
-			System.out.println("Starting robot code at "+args[0]);
 		}
+		curClassPath = args[0];
+		System.out.println("Starting robot code at "+args[0]);
 		System.out.println("Started Emulator Version " + Updater.version);
 		SaveManager.initSave();
-		ConfigManager.loadConfig();
 		instance = new RobotEmulator();
 		//window = new Window();
 		//new PotentiometerPart(25,25,100,50).channel=1;
@@ -88,6 +107,7 @@ public class RobotEmulator implements Runnable{
 					e.printStackTrace();
 				}
 			}
+			window.update();
 			try {
 				window.repaint();
 			} catch (Exception e) {

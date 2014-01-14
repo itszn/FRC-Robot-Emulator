@@ -3,7 +3,10 @@ package emulator;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -20,10 +23,11 @@ public class PotentiometerPart extends Part implements IMotorConnector{
 	int turns = 3;
 	long lastFrame = -1;
 	double currentPos = 0;
-	MotorConnector motorConnector = new MotorConnector(this);
+	MotorConnector motorConnector;
 	
 	public PotentiometerPart(int x, int y, int width, int height) {
 		super(x,y,width,height);
+		motorConnector = new MotorConnector(this);
 		name = "Potentiometer";
 		props = new JComponent[5];
 		String[] items = new String[AnalogModule.kAnalogChannels+1];
@@ -42,17 +46,23 @@ public class PotentiometerPart extends Part implements IMotorConnector{
 		SpinnerNumberModel analogModel = new SpinnerNumberModel(0.0,-0.0001,20,.1);
 		JSpinner analog = new JSpinner(analogModel);
 		props[3] = analog;
-		
+		motorConnector.motorInPoint = new Point(5,23);
+		pwmPoint = new Point(90,25);
 		
 	}
 	
 	public PotentiometerPart(int x, int y) {
-		this(x,y,50,50);
+		this(x,y,100,50);
 	}
 	
 	@Override
 	public void paint(Graphics g) {
 		g.drawRect(x, y, width, height);
+		try {
+			int r = (int)(Math.abs(currentPos%1d)*6d)+1;
+			BufferedImage i = ImageIO.read(ClassLoader.getSystemResource("res/potentiometer"+r+".png"));
+			g.drawImage(i, x, y, new Color(1,1,1,0), RobotEmulator.window);
+		} catch(Exception e){};
 		g.setColor(Color.black);
 		g.drawString("Analog Value: "+Utils.truncate(analogValue), x, y+height+11);
 		g.drawString("Turns: "+Utils.truncate(currentPos), x, y+height+22);
@@ -60,6 +70,9 @@ public class PotentiometerPart extends Part implements IMotorConnector{
 		if (currentPos<0 || currentPos>turns) {
 			g.setColor(Color.red);
 			g.drawString("Warning! Potentiometer maxed out!",x,y+height+33);
+		}
+		if (channel != 0) {
+			g.drawLine((channel>9?20:10), 396+11*(channel)-5, x+pwmPoint.x, y+pwmPoint.y);
 		}
 		super.paint(g);
 	}
@@ -104,11 +117,13 @@ public class PotentiometerPart extends Part implements IMotorConnector{
 		if (motorConnector.motorParent!=null){
 			currentPos += (motorConnector.motorParent.speed * ((double)dif)/1000d * gearRatio);
 		}
-		analogValue = currentPos/((double)turns);
-		if (analogValue>1)
-			analogValue=1;
+		analogValue = currentPos/((double)turns)*12;
+		if (analogValue>12)
+			analogValue=12;
 		if (analogValue<0)
 			analogValue=0;
+		if (channel!=0)
+			AnalogModule.AnalogChannels[channel-1]=analogValue;
 	}
 	
 	@Override
