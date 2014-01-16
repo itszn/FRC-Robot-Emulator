@@ -18,8 +18,8 @@ import javax.swing.JPanel;
 
 public abstract class Part implements ActionListener/*, Serializable*/{
 	
-	private static final long serialVersionUID = 4753975558253506016L;
 	public UUID uuid = null; 
+	public String id = "";
 	public UUID tempParentUUID = null;
 	static String name = "Part";
 	//boolean connecting = false;

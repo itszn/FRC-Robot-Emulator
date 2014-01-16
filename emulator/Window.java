@@ -34,6 +34,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.border.BevelBorder;
 
 import edu.wpi.first.wpilibj.AnalogModule;
 import edu.wpi.first.wpilibj.DigitalModule;
@@ -60,6 +61,9 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 	JoystickGUI joy1;
 	JoystickGUI joy2;
 	JPanel simOption;
+	
+	ArrayList<JFrame> simTabs = new ArrayList<JFrame>();
+	
 	boolean editMode = true;
 	boolean retainMode = false;
 	static Part selectedPart = null;
@@ -119,13 +123,14 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		i.addActionListener(this);
 		i.setActionCommand("setClassDef");
 		configMenu.add(i);
-		i = new JMenuItem("Open Current File On Launch");
+		i = new JMenuItem("Set Current File To Open On Launch");
 		i.addActionListener(this);
 		i.setActionCommand("setFileDef");
 		configMenu.add(i);
-		i = new JMenuItem("Open New File On Launch");
+		i = new JMenuItem("Set New File To Open On Launch");
 		i.addActionListener(this);
 		i.setActionCommand("clearFileDef");
+		configMenu.add(i);
 		menuBar.add(configMenu);
 		this.setJMenuBar(menuBar);
 		JFrame mainTab = new JFrame();
@@ -219,7 +224,7 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 					outputBox = new JTextArea(6,26);
 					outputBox.setEditable(false);
 					outputBox.setFocusable(false);
-					outputBox.setBorder(BorderFactory.createLoweredSoftBevelBorder());
+					outputBox.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 				
 				//n.add(new JLabel("Driver Station LCD"));
 				n.add(outputBox);
@@ -232,13 +237,18 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			draw.setSize(100, 100);
 		mainTab.getContentPane().add(draw,BorderLayout.CENTER);
 		
+		//TODO Search for moduals and add the name and JFrame
+		
 		JFrame simTab = new JFrame();
 		JPanel simOptions = new JPanel();
+		
 		
 		
 		JTabbedPane tabs = new JTabbedPane();
 		
 		tabs.addTab("LayOut", mainTab.getContentPane());
+		
+		
 		
 		
 		add(tabs,BorderLayout.CENTER);
@@ -287,7 +297,11 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		this.add(info,BorderLayout.EAST);
 		partConnecting = null;
 		shownInfo = info;
-		revalidate();
+		//revalidate();
+		invalidate();
+		validate();
+		
+		
 		repaint();
 	}
 	
@@ -295,7 +309,9 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 		this.remove(shownInfo);
 		this.add(panel,BorderLayout.EAST);
 		shownInfo = panel;
-		revalidate();
+		//revalidate();
+		invalidate();
+		validate();
 		repaint();
 	}
 	private Part partDragged;
@@ -575,6 +591,15 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			RobotEmulator.autoUpdate = autoUpdateOption.getState();
 			ConfigManager.saveConfig();
 		}
+		else if (evn.getActionCommand().equals("setFileDef")) {
+			RobotEmulator.defaultLoadFile = SaveManager.currentFile;
+			ConfigManager.saveConfig();
+			System.out.println("Test");
+		}
+		else if (evn.getActionCommand().equals("clearFileDef")) {
+			RobotEmulator.defaultLoadFile = "";
+			ConfigManager.saveConfig();
+		}
 		//System.out.println(evn.getActionCommand());
 		repaint();
 	}
@@ -642,6 +667,16 @@ public class Window extends JFrame implements ActionListener, MouseListener, Mou
 			Window.selectedPart = null;
 			changes = false;
 		}
+	}
+	
+	public void clearAll() {
+		RobotEmulator.parts = new ArrayList<Part>();
+		RobotEmulator.window.partConnecting = null;
+		RobotEmulator.window.closePref();
+		DriverStation.instance.InDisabled(true);
+		DriverStation.instance.InOperatorControl(true);
+		Window.selectedPart = null;
+		changes = false;
 	}
 
 	@Override

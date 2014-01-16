@@ -14,6 +14,7 @@ public class ConfigManager {
 			PrintWriter out = new PrintWriter(new FileWriter(new File("emulator.cfg")));
 			out.println("autoUpdate: "+RobotEmulator.autoUpdate);
 			out.println("defaultClass: "+RobotEmulator.defaultBot);
+			out.println("defaultLoadFile: "+RobotEmulator.defaultLoadFile);
 			
 			out.close();
 			System.out.println("Saved config");
@@ -36,11 +37,20 @@ public class ConfigManager {
 					} else if(l.startsWith("defaultClass: ")) {
 						RobotEmulator.defaultBot = l.split(" ")[1];
 					}
+					else if (l.startsWith("defaultLoadFile: ")) {
+						RobotEmulator.defaultLoadFile = l.substring(17);
+					}
 					l = in.readLine();
 				}
 			} catch(Exception e) {
 				in.close();
-				System.err.println("Error when reading config, using defaults");
+				if (e instanceof FileNotFoundException) {
+					saveConfig();
+					System.err.println("No config existed, creating one.");
+				}
+				else {
+					System.err.println("Error when reading config, using defaults");
+				}
 				return false;
 			}
 			in.close();

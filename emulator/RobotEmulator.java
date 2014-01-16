@@ -1,10 +1,12 @@
 package emulator;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Scanner;
 
 import javax.microedition.midlet.MIDletStateChangeException;
@@ -23,6 +25,7 @@ public class RobotEmulator implements Runnable{
 	
 	public static boolean autoUpdate = true;
 	public static String defaultBot = "";
+	public static String defaultLoadFile = "";
 	
 	public static String curClassPath = "";
 	
@@ -65,7 +68,7 @@ public class RobotEmulator implements Runnable{
 		instance = new RobotEmulator();
 		//window = new Window();
 		//new PotentiometerPart(25,25,100,50).channel=1;
-		new MotorPart(25,25,100,50).channel=1;
+		
 		try {
 			robot.startApp();
 		} catch (Exception e) {
@@ -90,6 +93,23 @@ public class RobotEmulator implements Runnable{
 		window = new Window();
 		if (autoUpdate)
 			Updater.checkUpdate(true);
+		boolean didLoad = false;
+		if (!defaultLoadFile.equals("")) {
+			File f = new File(defaultLoadFile);
+			String ext = SaveManager.getExtension(f);
+			if (ext!=null&&ext.equals("emu")) {
+				RobotEmulator.window.clearAll();
+				
+				if(SaveManager.instance.openFile(f)) {
+					didLoad = true;
+				}
+				else {
+					System.err.println("File "+defaultLoadFile+" could not be loaded.");
+				}
+			}
+		}
+		if (!didLoad)
+			new MotorPart(25,25,100,50).channel=1;
 		Scanner scan = new Scanner(System.in);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		lastPeriod = System.currentTimeMillis();
@@ -104,7 +124,8 @@ public class RobotEmulator implements Runnable{
 				try {
 					p.update();
 				} catch (Exception e) {
-					e.printStackTrace();
+					if (!(e instanceof ConcurrentModificationException))
+						e.printStackTrace();
 				}
 			}
 			window.update();

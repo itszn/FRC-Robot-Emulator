@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 
 public class SaveManager{
 	public static SaveManager instance = new SaveManager();
+	public static String currentFile = "";
 	
 	public static void initSave() {
 		System.out.println("Save Manager Loaded");
@@ -154,18 +155,31 @@ public class SaveManager{
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			File f = cho.getSelectedFile();
 			String ext = getExtension(f);
-			if (ext!=null&&ext.equals("emu"))
+			if (ext!=null&&ext.equals("emu")) {
+				RobotEmulator.window.clearAll();
 				return openFile(f);
+			}
 		}
 		return false;
 	}
 	
 	public boolean openFile(File f) {
 		try {
+			currentFile = f.getAbsolutePath();
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			ArrayList<Part> tempParts = new ArrayList<Part>();
-			String ln;
-			while((ln=br.readLine())!=null) {
+			String ln=" ";
+			double version = 0;
+			boolean skip = false;
+			while(ln!=null) {
+				if (!skip)
+					ln = br.readLine();
+				if (ln==null)
+					break;
+				skip = false;
+				if (ln.startsWith("<version ")) {
+					version = Double.valueOf(ln.substring(9,ln.length()-1));
+				}
 				if (ln.equals("<newPart>")) {
 					Part p = null;
 					long id1 = Long.valueOf(br.readLine());
@@ -229,6 +243,12 @@ public class SaveManager{
 					}
 					p.uuid = id;
 					p.tempParentUUID = parentId;
+					
+					//1.40 versioning:
+					if (version>=1.40) {
+						p.id = br.readLine();
+					}
+					
 					if (p instanceof IPowerConnector)
 					((IPowerConnector)p).getPowerConnector().autoPower = autoPower;
 					tempParts.add(p);

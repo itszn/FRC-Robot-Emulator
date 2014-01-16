@@ -24,7 +24,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
 public class Updater {
-	protected static double version = 1.36;
+	protected static double version = 1.41;
 	//private static boolean eclipseFlag = false;
 	//private static boolean netbeansFlag = false;
 	//private static boolean updateFound = true;

@@ -22,11 +22,11 @@ public class Connector
 	public static Connection open(String name)
 	{
 		URI uri = URI.create(name);
-		switch(uri.getScheme())
-		{
-			case "file":
+		
+		if (uri.getScheme().equals("file")){
 				return new FileConnection(new File(uri.getHost()+uri.getPath()));
-			default:
+		}
+		else {
 				throw new IllegalArgumentException("Unknown scheme: " + uri.getScheme());
 		}
 	}

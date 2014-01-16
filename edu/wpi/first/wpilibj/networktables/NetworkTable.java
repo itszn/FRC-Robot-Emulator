@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.networktables2.thread.*;
 import edu.wpi.first.wpilibj.networktables2.util.*;
 import edu.wpi.first.wpilibj.networktables2.util.List;
 import edu.wpi.first.wpilibj.tables.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -297,7 +298,7 @@ public class NetworkTable implements ITable, IRemote {
 	public double getNumber(String key) throws TableKeyNotDefinedException {
 		//return node.getDouble(absoluteKeyCache.get(key));
 		if (table.containsKey(key)) {
-			return (double)table.get(key);
+			return (Double)table.get(key);
 		}
 		return 0.0;
 	}
@@ -319,7 +320,7 @@ public class NetworkTable implements ITable, IRemote {
 			return defaultValue;
 		}*/
 		if (table.containsKey(key)) {
-			return (double)table.get(key);
+			return (Double) table.get(key);
 		}
 		return defaultValue;
 	}
@@ -399,7 +400,7 @@ public class NetworkTable implements ITable, IRemote {
 	public boolean getBoolean(String key) throws TableKeyNotDefinedException {
 		//return node.getBoolean(absoluteKeyCache.get(key));
 		if (table.containsKey(key)) {
-			return (boolean)table.get(key);
+			return (Boolean)table.get(key);
 		}
 		return false;
 	}
@@ -421,7 +422,7 @@ public class NetworkTable implements ITable, IRemote {
 		//	return defaultValue;
 		//}
 		if (table.containsKey(key)) {
-			return (boolean)table.get(key);
+			return (Boolean)table.get(key);
 		}
 		return defaultValue;
 		//return false;
