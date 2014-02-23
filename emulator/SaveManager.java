@@ -126,6 +126,7 @@ public class SaveManager{
 					pw.println(((RangeFinderPart) p).channel);
 					pw.println(((RangeFinderPart) p).distance);
 				}
+				pw.println(p.id);
 			}
 			pw.flush();
 			pw.close();

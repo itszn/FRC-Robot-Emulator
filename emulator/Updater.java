@@ -8,8 +8,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
@@ -24,7 +26,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
 public class Updater {
-	protected static double version = 1.41;
+	protected static double version = 1.42;
 	//private static boolean eclipseFlag = false;
 	//private static boolean netbeansFlag = false;
 	//private static boolean updateFound = true;
@@ -69,7 +71,7 @@ public class Updater {
 			if (!isAuto)
 				JOptionPane.showMessageDialog(null, "Could not connect to the update server.\nPlease check your connection settings.", "Download Failed", JOptionPane.ERROR_MESSAGE);
 		}
-		
+		//System.out.println(Updater.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 		if (doUpdate) {
 			JPanel update = new JPanel();
 			update.setSize(200, 300);
@@ -92,45 +94,29 @@ public class Updater {
 			totalPatch = totalPatch.replace("\\n", "\n");
 			System.out.println("Update avalible:\n"+totalPatch);
 			String path = "";
+			path = Updater.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 			boolean eclipseFlag = false;
 			boolean netbeansFlag = false;
+			boolean useLocal = false;
 			try {
-				File classpath = new File(".classpath");
-				BufferedReader in =  new BufferedReader(new FileReader(classpath));
-				eclipseFlag = true;
-				System.out.println("Eclipse Detected");
-				String l = in.readLine();
-				while (l!=null) {
-					if (l.matches("\t<classpathentry kind=\"lib\" path=\".*?frcEmulator.jar\"/?>")) {
-						if (l.charAt(l.length()-2)=='/')
-							path = l.substring(34,l.length()-3);
-						else
-							path = l.substring(34,l.length()-2);
-						System.out.println("Found path of emulator jar at "+path);
-						break;
-					}
-					l = in.readLine();
-				}
-				in.close();
-			} catch (FileNotFoundException e) {
-				eclipseFlag = false;
-				//e.printStackTrace();
-			} catch (IOException e) {
-				eclipseFlag = false;
-				System.err.println("Unable to read eclipse .classpath file");
-				//e.printStackTrace();
+				path = URLDecoder.decode(path, "utf-8");
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			
-			if (!eclipseFlag) {
+			if (useLocal) {
 				try {
-					File project = new File("nbproject/project.properties");
-					BufferedReader in =  new BufferedReader(new FileReader(project));
-					netbeansFlag = true;
-					System.out.println("Netbeans Detected");
+					File classpath = new File(".classpath");
+					BufferedReader in =  new BufferedReader(new FileReader(classpath));
+					eclipseFlag = true;
+					System.out.println("Eclipse Detected");
 					String l = in.readLine();
 					while (l!=null) {
-						if (l.matches("file.reference.frcEmulator.jar=.*?frcEmulator.jar")) {
-							path = l.substring(31);
+						if (l.matches("\t<classpathentry kind=\"lib\" path=\".*?frcEmulator.jar\"/?>")) {
+							if (l.charAt(l.length()-2)=='/')
+								path = l.substring(34,l.length()-3);
+							else
+								path = l.substring(34,l.length()-2);
 							System.out.println("Found path of emulator jar at "+path);
 							break;
 						}
@@ -138,13 +124,39 @@ public class Updater {
 					}
 					in.close();
 				} catch (FileNotFoundException e) {
-					netbeansFlag = false;
+					eclipseFlag = false;
 					//e.printStackTrace();
 				} catch (IOException e) {
-					netbeansFlag = false;
-					System.err.println("Unable to read netbeans project.properties file");
+					eclipseFlag = false;
+					System.err.println("Unable to read eclipse .classpath file");
 					//e.printStackTrace();
-				}	
+				}
+				
+				if (!eclipseFlag) {
+					try {
+						File project = new File("nbproject/project.properties");
+						BufferedReader in =  new BufferedReader(new FileReader(project));
+						netbeansFlag = true;
+						System.out.println("Netbeans Detected");
+						String l = in.readLine();
+						while (l!=null) {
+							if (l.matches("file.reference.frcEmulator.jar=.*?frcEmulator.jar")) {
+								path = l.substring(31);
+								System.out.println("Found path of emulator jar at "+path);
+								break;
+							}
+							l = in.readLine();
+						}
+						in.close();
+					} catch (FileNotFoundException e) {
+						netbeansFlag = false;
+						//e.printStackTrace();
+					} catch (IOException e) {
+						netbeansFlag = false;
+						System.err.println("Unable to read netbeans project.properties file");
+						//e.printStackTrace();
+					}	
+				}
 			}
 			
 			if (!path.equals("") && (netbeansFlag || eclipseFlag)) {
@@ -197,6 +209,7 @@ public class Updater {
 				JOptionPane.showMessageDialog(null, "Emulator jar could not be found. Please check the classpath.", "Download Failed", JOptionPane.ERROR_MESSAGE);
 				
 			}
+			path = Updater.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		}
 		} else if (canConnect && !isAuto) {
 			JOptionPane.showMessageDialog(null, "There is not update avalible", "Up To Date", JOptionPane.INFORMATION_MESSAGE);
